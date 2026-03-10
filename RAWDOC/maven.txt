@@ -1,0 +1,75 @@
+
+maven 整体模块结构图:
+
+fluxion-parent/
+├── fluxion-dependencies/          # 依赖版本管理 BOM
+├── fluxion-model/                  # 纯领域模型（无任何依赖）
+├── fluxion-spi/                    # 扩展点接口（依赖 fluxion-model）
+├── fluxion-common/                 # 通用工具类（无 Spring 依赖）
+├── fluxion-core/
+│   ├── fluxion-modeler/            # JSON 解析与模型转换（依赖 fluxion-model、fluxion-common）
+│   └── fluxion-engine/             # 流程执行引擎核心（依赖 fluxion-model、fluxion-spi）
+├── fluxion-runtime/
+│   ├── fluxion-persistence-mybatisplus/ # MyBatis-Plus 持久化实现（依赖 fluxion-spi、fluxion-model）
+│   ├── fluxion-scheduler/          # 定时任务调度（依赖 fluxion-spi、fluxion-model、fluxion-engine）
+│   ├── fluxion-web/                # REST API 接口（依赖 fluxion-spi、fluxion-model、fluxion-engine、fluxion-modeler）
+│   └── fluxion-spring-boot-starter/ # Spring Boot Starter 自动配置（聚合所有运行时模块）
+├── fluxion-extension/
+│   ├── fluxion-plugin-core/        # 插件核心管理（PF4J 封装）（依赖 fluxion-spi、fluxion-model）
+│   ├── fluxion-expression-spel/    # SpEL 表达式实现（依赖 fluxion-spi、fluxion-model）
+│   ├── fluxion-expression-aviator/ # Aviator 表达式实现（依赖 fluxion-spi、fluxion-model）
+│   └── fluxion-script-groovy/      # Groovy 脚本引擎（依赖 fluxion-spi、fluxion-model）
+├── fluxion-nodes/                  # 可选内置节点库（实现 NodeRunner，依赖 fluxion-spi、fluxion-model、fluxion-common）
+│   ├── fluxion-node-http/          # HTTP 请求节点
+│   ├── fluxion-node-database/      # 数据库操作节点
+│   ├── fluxion-node-redis/         # Redis 操作节点
+│   ├── fluxion-node-stream/        # 流式处理节点
+│   └── fluxion-node-control/       # 控制流节点（if/else/loop）
+├── fluxion-test/                   # 集成测试支持（依赖所有模块）
+└── fluxion-distribution/
+    └── fluxion-server/             # 可执行服务端打包（聚合所有模块）
+
+模块作用与依赖关系
+模块	作用	依赖（除父POM和JDK外）
+fluxion-dependencies	BOM 模块，统一管理所有模块及第三方依赖的版本。	无
+fluxion-model	纯领域模型，包含：
+• 流程建模接口（FlowDefinition、NodeDefinition、Connection）
+• 流程实例接口（ProcessInstance、ExecutionContext、VariableScope）
+• 数据上下文接口（DataContext）
+• 相关的枚举、常量、异常（如 FlowDefinitionException）
+无任何第三方依赖，仅使用 JDK。	无
+fluxion-spi	扩展点接口，包含：
+• 节点执行器 SPI（NodeRunner）
+• 持久化仓储接口（FlowDefinitionRepository、FlowInstanceRepository 等）
+• 表达式解析器接口（ExpressionEvaluator）
+• 脚本执行器接口（ScriptExecutor）
+• 插件注册接口（PluginRegistry）
+• SPI 级别的异常（如 NodeExecutionException）
+依赖 fluxion-model（因为方法参数和返回值引用模型）。	fluxion-model
+fluxion-common	通用工具模块，提供字符串处理、集合工具、基础异常（FluxionException）等，无任何业务接口和 Spring 依赖。	无
+fluxion-engine	流程执行引擎核心，专注于内存中的图计算、节点调度、状态机管理等纯逻辑。实现流程解析、执行调度，通过 NodeRunner 调用节点逻辑，并提供默认的 MapDataContext 实现。	fluxion-model、fluxion-spi
+fluxion-modeler	JSON 解析与模型转换，负责将前端流程图 JSON 转换为引擎可执行的 DAG 模型（如 FlowModel、NodeModel），同时承担结构校验（环路检测、必填参数等）。提供基于 jackson 的 JsonNodeDataContext 实现。	fluxion-model、fluxion-common、jackson
+fluxion-persistence-mybatisplus	MyBatis-Plus 持久化实现，实现 fluxion-spi 中的仓储接口，负责流程定义、实例、日志等数据的数据库存取。	fluxion-spi、fluxion-model、mybatis-plus-spring-boot-starter
+fluxion-scheduler	定时任务调度模块，集成 Quartz，提供基于 Cron 表达式的流程触发能力，支持动态修改、暂停、恢复及分布式调度。	fluxion-spi、fluxion-model、fluxion-engine、quartz
+fluxion-web	REST API 模块，提供流程管理、实例查询、监控等 HTTP 端点，供前端设计器或外部系统调用。	fluxion-spi、fluxion-model、fluxion-engine、fluxion-modeler、spring-boot-starter-web
+fluxion-spring-boot-starter	Spring Boot Starter 自动配置模块，聚合所有运行时模块，根据条件装配引擎、持久化、调度、Web 等，提供 @EnableFluxion 注解和可配置属性。	依赖所有 runtime 模块及默认扩展（如 fluxion-expression-spel、fluxion-script-groovy）和基础节点（如 fluxion-node-control）、fluxion-modeler
+fluxion-plugin-core	插件核心管理模块，基于 PF4J 封装插件加载、卸载、扩展点获取等功能，提供 PluginManager 包装，供引擎在运行时加载插件节点。	fluxion-spi、fluxion-model、pf4j
+fluxion-expression-spel	SpEL 表达式引擎实现，实现 ExpressionEvaluator 接口，用于流程中的条件判断和变量计算。	fluxion-spi、fluxion-model、spring-expression
+fluxion-expression-aviator	Aviator 表达式引擎实现，实现 ExpressionEvaluator 接口，提供高性能轻量级表达式求值。	fluxion-spi、fluxion-model、aviator
+fluxion-script-groovy	Groovy 脚本引擎实现，实现 ScriptExecutor 接口，支持用户在流程中编写动态逻辑。	fluxion-spi、fluxion-model、groovy
+fluxion-node-http	HTTP 请求节点，实现 NodeRunner 接口，提供发送 HTTP/HTTPS 请求的功能。	fluxion-spi、fluxion-model、fluxion-common、spring-web（或 httpclient）
+fluxion-node-database	数据库操作节点，实现 NodeRunner 接口，提供执行 SQL 查询、更新等操作。	fluxion-spi、fluxion-model、fluxion-common、spring-jdbc（或 mybatis）
+fluxion-node-redis	Redis 操作节点，实现 NodeRunner 接口，提供与 Redis 交互的能力。	fluxion-spi、fluxion-model、spring-data-redis（或 jedis）
+fluxion-node-stream	流式处理节点，实现 NodeRunner 接口，提供游标查询、分批处理、并行流等流式处理能力。	fluxion-spi、fluxion-model、fluxion-common
+fluxion-node-control	控制流节点，实现 NodeRunner 接口，提供条件判断（if/else）、循环（for/while）等流程控制逻辑。	fluxion-spi、fluxion-model、fluxion-common
+fluxion-test	集成测试模块，包含所有模块的集成测试用例、测试工具类（如嵌入式数据库配置、Mock 引擎），保证整体功能正确性。	所有模块（测试范围）
+fluxion-server	可执行服务端打包模块，将 Fluxion 打包为独立运行的 Spring Boot 应用，聚合所有默认节点和扩展，提供完整的可视化编排平台。	所有 runtime 模块、默认扩展、默认节点
+
+模块依赖关系要点:
+核心纯净：fluxion-engine 仅依赖 fluxion-spi 和 fluxion-model，不依赖任何基础设施模块，便于独立测试和复用。
+接口驱动：所有扩展点（持久化、表达式、脚本、插件）的接口均定义在 fluxion-spi 中，具体实现模块通过实现这些接口与核心交互。
+运行时聚合：fluxion-spring-boot-starter 作为入口，自动装配所有基础设施和默认扩展，用户只需引入该 starter 即可使用。
+节点可选：fluxion-nodes 下的各节点模块均为可选，用户可按需引入，避免依赖臃肿。
+插件隔离：fluxion-plugin-core 独立管理插件，插件节点需实现 fluxion-spi 中的 NodeRunner 接口，并通过 PF4J 机制加载，不侵入核心引擎。
+
+
