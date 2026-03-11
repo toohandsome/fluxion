@@ -16,9 +16,9 @@
 1. `Engine`
    负责流程模型、执行调度、上下文、状态机。
 2. `Starter`
-   负责把引擎能力装配进业务系统，本身不作为独立服务启动，也不单独提供独立监听端口。
+   负责把 Fluxion 能力装配进业务系统，核心能力与 `Server` 等价；默认不自启独立 Web 端口，可按宿主需要启用 Web/API 与前端页面能力。
 3. `Server`
-   基于 `Starter` 底座能力额外聚合 Web/API，负责提供独立平台所需的管理和运行时接口。
+   基于 `Starter` 提供开箱即用的独立部署形态，默认启用 Web/API 暴露与前端页面集成能力，并以独立进程运行。
 
 整体调用链如下：
 
@@ -176,9 +176,9 @@ fluxion-parent/
 7. `fluxion-admin-api`
    负责流程管理、发布管理、监控接口。
 8. `fluxion-spring-boot-starter`
-   负责核心能力自动装配，不单独提供独立监听端口。
+   负责核心能力自动装配；默认不自启独立端口，Web/API 与前端页面能力可按宿主应用需要启用。
 9. `fluxion-server`
-   依赖 `fluxion-spring-boot-starter`，额外聚合 Web/API 能力并负责独立服务启动。
+   依赖 `fluxion-spring-boot-starter`，提供开箱即用的独立部署与独立进程启动，默认启用 Web/API 与前端页面能力。
 
 ## 7. 一期前端设计器方案
 
@@ -1386,4 +1386,4 @@ Content-Type: application/json
 
 1. 先完成模型、引擎、持久化
 2. 再完成运行时接口与管理接口
-3. 最后完成 Starter 自动装配和基于 Starter 的独立 Server 聚合
+3. 最后完成 Starter 自动装配，以及基于 Starter 的独立 Server 运行形态封装
