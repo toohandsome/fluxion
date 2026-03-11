@@ -37,7 +37,7 @@
 | --- | --- | --- | --- |
 | `credentialCode` | string | 是 | 凭证业务编码 |
 | `credentialName` | string | 是 | 凭证名称 |
-| `authType` | string | 是 | 一期固定为 `BASIC_AUTH` |
+| `authType` | string | 是 | 默认 `OPEN`, `BASIC_AUTH`需实现；`APP_KEY`、`BEARER_TOKEN` 允许配置但不做校验。 |
 | `description` | string | 否 | 备注说明 |
 | `config` | object | 否 | 非敏感配置 |
 | `secret` | object | 否 | 敏感配置 |

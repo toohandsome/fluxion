@@ -19,16 +19,7 @@
 3. 如果与宿主项目已有path 冲突, 页面要提出出具体报错信息，禁止保存
 . 只有 `status = ONLINE` 的端点才能被运行时分发器匹配。
 
-### 2.2 响应规则
-
-1. 管理接口和运行时接口统一使用 [../base.md](../base.md) 中定义的响应包结构。
-2. 所有运行时接口固定返回 HTTP `200`。
-3. 一期 HTTP 发布响应格式固定为 JSON 包装。
-4. 业务状态全部通过字符串 `code` 表达。
-5. 所有运行时接口必须返回 `requestId`。
-6. HTTP接口发布时如果自定义了返回格式、则自定义优先，不受全局格式影响
-
-### 2.3 版本解析规则
+### 2.2 版本解析规则
 
 1. `versionPolicy = LATEST` 时，触发时解析流程当前生效版本。
 2. `versionPolicy = FIXED` 时，触发时固定使用 `fixedVersionId`。
@@ -276,7 +267,7 @@
 
 约定：
 
-1. 一期 `authType` 只实现 BASIC_AUTH，`OPEN` 允许配置但不做校验。
+1. 一期 `authType` 只实现 BASIC_AUTH，`OPEN`、`APP_KEY`、`BEARER_TOKEN` 允许配置但不做校验。
 2. 鉴权失败时固定返回 HTTP `200`，业务状态码为 `UNAUTHORIZED` 或 `FORBIDDEN`。
 
 ### 7.2 认证凭证引用规则

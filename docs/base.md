@@ -1,5 +1,40 @@
 # Fluxion 规范文档
 
+## 技术栈
+
+### 后端
+
+构建工具：maven
+JDK21
+框架：springboot 3.5
+JSON 处理库: Jackson（springboot自带）
+日志框架：logback
+数据库连接池：druid
+HTTP 客户端: OkHttp
+orm：MyBatis-Plus
+数据库自动化：Flyway
+安全：Spring Security
+参数校验：spring-boot-starter-validation
+接口文档：knife4j-openapi3-jakarta-spring-boot-starter
+任务调度：Quartz
+测试：JUnit5 + Mockito + Testcontainers + WireMock
+
+### 前端
+
+框架：vue3
+语言：TypeScript
+构建工具：vite
+流程画布：AntV X6
+动态表单：Formily
+路由: Vue Router
+状态: Pinia
+UI组件: Element Plus
+HTTP: Axios
+工具: VueUse
+代码提示：Monaco
+工程质量：ESLint + Prettier + Stylelint
+测试：Vitest + Vue Test Utils + Playwright
+
 ## 数据库规范
 
 - **时间格式：** 所有时间字段统一使用 `yyyy-MM-dd HH:mm:ss.SSS` 格式
@@ -24,12 +59,11 @@
 
 ### 统一约束
 
-1. 所有接口均返回 `application/json`
-2. 所有接口的 HTTP 状态码固定返回 `200`
+1. 除运行时 HTTP 接口可自定义响应 data 映射外，其他接口固定返回统一 JSON 格式：`application/json`
+2. 除运行时 HTTP 接口可自定义响应 状态码 映射外，其他接口的 HTTP 状态码固定返回 `200`
 3. HTTP 状态码不承载业务语义，成功、失败、运行中、鉴权失败、限流等状态全部通过业务状态码表达
-4. 所有接口都必须返回 `requestId`
+4. 除运行时 HTTP 接口可自定义响应 状态码 映射外，其他接口都必须返回 `requestId`
 5. `code` 统一使用字符串业务状态码
-6. HTTP接口发布时如果自定义了返回格式、则自定义优先，不受全局格式影响
 
 ### 响应结构
 
