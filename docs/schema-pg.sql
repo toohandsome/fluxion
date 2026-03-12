@@ -277,7 +277,7 @@ COMMENT ON COLUMN flx_node_execution_data.error_log IS '异常堆栈';
 COMMENT ON COLUMN flx_node_execution_data.create_time IS '创建时间';
 COMMENT ON COLUMN flx_node_execution_data.update_time IS '更新时间';
 
--- 节点执行尝试明细表(仅记录真实执行)
+-- 节点执行尝试明细表(记录真实 attempt，含资源许可获取失败)
 CREATE TABLE flx_node_execution_attempt (
     id BIGINT NOT NULL,
     tenant_id VARCHAR(64) NOT NULL DEFAULT 'default',
@@ -294,16 +294,16 @@ CREATE TABLE flx_node_execution_attempt (
     CONSTRAINT uk_flx_node_execution_attempt_exec_attempt UNIQUE (execution_id, attempt_no)
 );
 
-COMMENT ON TABLE flx_node_execution_attempt IS '节点执行尝试明细表(仅记录真实执行)';
+COMMENT ON TABLE flx_node_execution_attempt IS '节点执行尝试明细表(记录真实attempt，含资源许可获取失败)';
 COMMENT ON COLUMN flx_node_execution_attempt.id IS '主键';
 COMMENT ON COLUMN flx_node_execution_attempt.tenant_id IS '租户ID';
 COMMENT ON COLUMN flx_node_execution_attempt.execution_id IS '关联 flx_node_execution.id';
 COMMENT ON COLUMN flx_node_execution_attempt.attempt_no IS '第几次尝试, 从1开始';
 COMMENT ON COLUMN flx_node_execution_attempt.status IS '状态: 0-已创建, 1-运行中, 2-成功, 3-失败, 4-已取消';
-COMMENT ON COLUMN flx_node_execution_attempt.start_time IS '开始时间';
+COMMENT ON COLUMN flx_node_execution_attempt.start_time IS '开始时间, 从申请执行资源起计算';
 COMMENT ON COLUMN flx_node_execution_attempt.end_time IS '结束时间';
 COMMENT ON COLUMN flx_node_execution_attempt.duration_ms IS '耗时(毫秒)';
-COMMENT ON COLUMN flx_node_execution_attempt.error_code IS '错误码';
+COMMENT ON COLUMN flx_node_execution_attempt.error_code IS '错误码, 包含资源许可不足等引擎治理错误';
 COMMENT ON COLUMN flx_node_execution_attempt.error_message IS '错误摘要';
 COMMENT ON COLUMN flx_node_execution_attempt.create_time IS '创建时间';
 
@@ -498,7 +498,7 @@ COMMENT ON COLUMN flx_resource.resource_code IS '资源业务编码';
 COMMENT ON COLUMN flx_resource.resource_name IS '资源名称';
 COMMENT ON COLUMN flx_resource.resource_type IS '资源类型: DB, HTTP, REDIS, OSS, CUSTOM';
 COMMENT ON COLUMN flx_resource.description IS '资源描述';
-COMMENT ON COLUMN flx_resource.config_json IS '非敏感配置(JSON)';
+COMMENT ON COLUMN flx_resource.config_json IS '非敏感配置(JSON), 一期资源级并发配置如 maxConcurrency 也存放于此';
 COMMENT ON COLUMN flx_resource.status IS '状态: 0-禁用, 1-启用';
 COMMENT ON COLUMN flx_resource.test_status IS '连通性状态: 0-未测试, 1-成功, 2-失败';
 COMMENT ON COLUMN flx_resource.last_test_time IS '最近测试时间';
@@ -562,7 +562,7 @@ COMMENT ON COLUMN flx_auth_credential.id IS '主键';
 COMMENT ON COLUMN flx_auth_credential.tenant_id IS '租户ID';
 COMMENT ON COLUMN flx_auth_credential.credential_code IS '凭证业务编码';
 COMMENT ON COLUMN flx_auth_credential.credential_name IS '凭证名称';
-COMMENT ON COLUMN flx_auth_credential.auth_type IS '认证类型: 0-OPEN, 1-APP_KEY, 2-BEARER_TOKEN, 3-BASIC_AUTH（一期仅支持 BASIC_AUTH）';
+COMMENT ON COLUMN flx_auth_credential.auth_type IS '认证类型: 0-OPEN, 1-APP_KEY, 2-BEARER_TOKEN, 3-BASIC_AUTH';
 COMMENT ON COLUMN flx_auth_credential.config_json IS '非敏感配置(JSON)';
 COMMENT ON COLUMN flx_auth_credential.description IS '凭证描述';
 COMMENT ON COLUMN flx_auth_credential.status IS '状态: 0-禁用, 1-启用';

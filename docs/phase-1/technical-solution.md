@@ -71,6 +71,11 @@
 2. 默认策略为“节点失败即流程失败”。
 3. 节点支持超时和重试。
 4. 并发执行只覆盖 I/O 型场景，执行载体默认采用虚拟线程。
+5. 一期采用简化版混合调度，而不是“万物皆虚拟线程”：
+   - `log`、`variable`、`condition` 等轻量 CPU 节点默认内联执行；
+   - `http`、`dbQuery`、`dbUpdate` 等 I/O 节点进入引擎执行器，默认采用虚拟线程承载。
+6. 一期不引入通用事件总线、复杂 `ExecutionType` 体系、多级排队模型；先保持“就绪节点 -> 分发执行 -> 完成后推进 DAG”的最小闭环。
+7. 对外部资源访问统一增加基于 `resourceRef` 的并发保护；并发限额通过引擎或资源侧配置控制，不开放为节点级单独配置。
 
 ### 4.3 调度与 HTTP
 
@@ -79,7 +84,7 @@
 3. 任务并发、等待超时、错失策略通过任务表字段配置，其中 `waitTimeoutMs` 表示调度侧等待实例进入终态的最长时间。
 4. 调度触发流水拆分为 `dispatchStatus`、`waitStatus`、`instanceStatusSnapshot` 三层内部状态，对外列表默认只展示 `summaryStatus`。
 5. `CATCH_UP_BOUNDED` 为一期唯一推荐的补跑追赶策略，默认采用“最近 1 小时、最多 10 次、最老优先”。
-6. 一期默认提供开放、AppKey、Bearer Token、basic auth 四种基础认证方式。（一期只实现basic auth）
+6. 一期提供 open、AppKey、Bearer Token、basic auth 四种基础认证方式进行配置。（一期只实现open 与 basic auth；AppKey、Bearer Token为预留后期实现）
 
 ### 4.4 数据库与资源
 
@@ -94,6 +99,7 @@
 2. 管理 API 统一分页格式和错误码风格。
 3. 后续编码优先顺序为：`model -> spi -> engine -> persistence -> api -> starter`。
 4. 虽然一期产品包含基础前端设计器，但编码阶段可优先落后端底座，再与前端联调。
+5. 一期正式错误码基线见 [error-codes.md](./error-codes.md)。
 
 ## 5. 执行模型
 
@@ -106,6 +112,17 @@
 5. 发布时固定版本快照
 6. 运行时只执行 `model_json`
 
+### 5.1.1 编译器结构校验推荐步骤
+
+1. 先根据 `nodes` 与 `edges` 构建邻接表、入度表、出度表，并校验节点引用完整性。
+2. 以“入度为 `0`”识别起始节点，以“出度为 `0`”识别结束节点。
+3. 一期推荐采用 Kahn 拓扑排序：
+   - 初始化所有入度为 `0` 的节点队列；
+   - 逐个弹出节点并削减其下游入度；
+   - 若最终输出节点数小于总节点数，则判定图中存在环。
+4. DAG 检测、拓扑排序和起始节点识别以同一套入度计算结果为准，不额外要求引入 Tarjan 等强连通分量算法。
+5. `orderedNodeIds`、`levelGroups`、`startNodeIds`、`terminalNodeIds` 均应由上述编译结果一次性生成。
+
 ### 5.2 执行语义
 
 1. 默认 `at-least-once`
@@ -113,6 +130,15 @@
 3. 失败默认终止流程
 4. 支持有限并发
 5. 补偿策略在一期只做声明与审计，不自动执行补偿编排
+
+一期简化版执行分发约定：
+
+1. `log`、`variable`、`condition` 视为轻量 CPU 节点，由当前 DAG 推进线程内联执行，避免无意义线程切换。
+2. `http`、`dbQuery`、`dbUpdate` 视为 I/O 节点，交由引擎执行器异步执行，执行载体默认采用虚拟线程。
+3. `dbQuery`、`dbUpdate` 一期先不引入专用平台线程池隔离；若后续验证 JDBC 驱动或资源访问存在明显 pinning/阻塞风险，再演进为专用执行池。
+4. 一期不引入独立的流程级事件总线；节点完成后直接回到调度推进逻辑，由引擎计算新的就绪节点。
+5. 对 `http`、`dbQuery`、`dbUpdate` 这类依赖外部资源的节点，执行前应先通过 `resourceRef` 级并发许可校验，用于保护下游系统容量。
+6. 一期不在正式文档中固化 JDBC 驱动黑名单；若目标驱动在压测中表现出明显虚拟线程 pinning 风险，可将 `dbQuery`、`dbUpdate` 回退为平台线程池执行，这属于实现层兼容策略。
 
 ### 5.3 运行上下文
 
@@ -133,6 +159,7 @@
 详细执行语义见：
 
 - [runtime-semantics.md](./runtime-semantics.md)
+- [error-codes.md](./error-codes.md)
 
 ## 6. 模块设计
 
@@ -197,7 +224,7 @@ fluxion-parent/
 5. 流程实例列表页
    用于查询流程实例、状态、耗时、触发方式。
 6. 节点执行详情页
-   用于查看节点执行状态、输入输出快照、错误信息、重试明细。
+   用于查看节点执行状态、输入输出快照、错误信息、重试明细；对 fail-fast 后模型中存在但无执行记录的节点，可派生展示 `NOT_SCHEDULED` / `ABORTED_BY_FAIL_FAST`。
 7. 资源管理页
    用于维护数据库连接、HTTP 认证信息等资源配置。
 8. HTTP 发布管理页
@@ -211,6 +238,7 @@ fluxion-parent/
 2. 运行监控相关页面只读展示执行结果，不允许直接修改已发布版本。
 3. 资源管理页负责统一维护连接信息，流程配置中只引用资源标识，不直接保存敏感凭证。
 4. 一期前端不实现插件动态加载、多人协作编辑和复杂调试能力。
+5. 监控页允许在不改变数据库正式状态的前提下，基于 `model_json` 与执行记录派生展示态；例如对 fail-fast 后无执行记录的节点展示 `NOT_SCHEDULED` / `ABORTED_BY_FAIL_FAST`。
 
 ### 7.2.1 表达式与映射可用性补偿设计
 
@@ -782,7 +810,7 @@ fluxion-parent/
 | --- | --- | --- |
 | `GET` | `/admin/instances` | 查询流程实例 |
 | `GET` | `/admin/instances/{instanceId}` | 查询实例详情 |
-| `GET` | `/admin/instances/{instanceId}/executions` | 查询节点执行记录 |
+| `GET` | `/admin/instances/{instanceId}/executions` | 查询节点执行记录，可结合 `model_json` 派生展示未形成执行记录的节点状态 |
 | `GET` | `/admin/executions/{executionId}` | 查询节点执行详情 |
 | `GET` | `/admin/executions/{executionId}/attempts` | 查询节点重试明细 |
 
@@ -922,6 +950,7 @@ Content-Type: application/json
 4. 异步接口受理成功返回统一响应包，`code = ACCEPTED`。
 5. 同步接口执行失败时返回统一响应包，`code = FLOW_FAILED` 或平台定义的固定业务错误码；响应格式始终为 JSON 包装。
 6. 异步接口创建实例成功后，即使后续流程失败，也通过结果查询接口暴露失败状态，而不是回写首个触发请求。
+7. 若流程最终输出 `flowOutputMapping` 求值失败，实例按 `FAILED` 处理，建议错误码使用 `FLOW_OUTPUT_EVAL_FAILED`。
 
 ### 7.10 节点参数 Schema 规范
 
@@ -1047,7 +1076,7 @@ Content-Type: application/json
       "type": "select",
       "required": true,
       "defaultValue": "GET",
-      "options": ["GET", "POST", "PUT", "DELETE"]
+      "options": ["GET", "POST", "PUT", "DELETE", "PATCH"]
     },
     {
       "name": "path",
@@ -1093,6 +1122,15 @@ Content-Type: application/json
 ### 7.11 `model_json` 最小运行时结构定义
 
 `model_json` 是后端编译后的运行时模型，用于执行引擎直接消费。
+
+正式契约说明：
+
+1. 一期 `model_json` 采用“两层契约”：
+   - 第一层：`JSON Schema`，负责结构、类型、必填项、条件必填关系校验；
+   - 第二层：编译期语义校验，负责 DAG、拓扑、引用一致性、表达式作用域、资源引用等校验。
+2. `JSON Schema` 采用“保守兼容版”风格：核心字段严格定义，扩展字段统一进入 `extensions`。
+3. `model_json` 的正式字段定义、两层契约边界和兼容规则以 [model-json-contract.md](./model-json-contract.md) 为准。
+4. 对应的结构校验文件见 [model-json.schema.json](./model-json.schema.json)。
 
 #### 7.11.1 顶层结构
 
@@ -1324,6 +1362,10 @@ Content-Type: application/json
 3. `flx_node_execution_attempt` 只记录真实执行尝试；未真实执行的 `SKIPPED` 节点不写入 attempt 记录。
 4. `attempt_count` 表示真实执行尝试次数；对 `SKIPPED` 节点固定为 `0`。
 5. `skip_reason` 用于记录节点跳过原因，便于监控页和执行详情页展示。
+6. 对 fail-fast 后尚未形成调度结论、因此未落 `flx_node_execution` 的节点，一期不新增持久化状态；监控页可基于 `model_json` 与执行记录派生展示 `NOT_SCHEDULED` / `ABORTED_BY_FAIL_FAST`。
+7. 节点终态写入时，`flx_node_execution` 与 `flx_node_execution_data` 应保持本地事务一致性。
+8. 节点输出在 `outputMapping` 求值成功后先写入运行时上下文，再在节点终态事务中落入 `flx_node_execution_data.output_data`。
+9. 流程最终输出在 `flowOutputMapping` 成功求值后写入 `flx_flow_instance_data.output_data`；若求值失败，实例按 `FAILED` 处理并记录错误码。
 
 ### 8.3 暴露与调度
 

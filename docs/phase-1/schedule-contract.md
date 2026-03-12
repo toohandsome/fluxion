@@ -23,6 +23,13 @@
 5. 一期调度语义拆分为“调度投递结果”和“流程实例结果”两层，不再使用单一状态混合表达。
 6. 一期不提供独立排队语义；触发点在并发门禁不通过时直接拒绝。
 
+### 2.1.1 Quartz 映射约定
+
+1. 每条 `flx_schedule_job` 映射为一个 Quartz `JobDetail` 和一个关联 `Trigger`。
+2. Quartz `JobDetail` 的稳定标识建议使用 `tenantId + jobId` 或 `tenantId + jobCode` 组合。
+3. Quartz `JobDataMap` 一期只要求放入最小定位信息，如 `tenantId`、`jobId`，运行时详细配置仍以数据库中的 `flx_schedule_job` 为准。
+4. 一期不要求自定义 Quartz `Job` 长时间持有 `CompletableFuture`；调度等待行为由调度执行逻辑实现，而不是由 Quartz 原生状态机承载。
+
 ### 2.2 接口与状态码规则
 
 1. 管理接口统一使用 [../base.md](../base.md) 中定义的响应结构。
@@ -208,6 +215,20 @@
 3. 当实例创建成功但等待超过 `waitTimeoutMs` 时：
    `dispatchStatus = ACCEPTED`，`waitStatus = TIMEOUT`，`instanceStatusSnapshot` 通常为 `RUNNING`。
 4. 发生 `TIMEOUT` 后，实例仍可在后台继续运行，并允许后续异步回填 `instanceStatusSnapshot`。
+
+### 7.2.1 调度等待实现建议
+
+1. `waitTimeoutMs` 的实现目标是“调度侧有限观察”，而不是改变流程实例生命周期。
+2. 一期推荐由调度执行逻辑在实例创建成功后进行有限等待观察；不要求 Quartz `Job` 本身持有长生命周期 future。
+3. 观察实现可采用短周期轮询实例状态或等价的轻量等待机制；只要对外语义满足 `COMPLETED` / `TIMEOUT` 即可。
+4. 当观察窗口结束时，应立即写回本次触发流水的 `waitStatus`、`instanceStatusSnapshot` 和 `finishTime`。
+
+### 7.2.2 超时后的异步回填
+
+1. 当触发流水已记为 `TIMEOUT` 后，实例仍可在后台继续执行至终态。
+2. 实例进入终态后，应允许异步回填对应 `flx_schedule_trigger_log.instanceStatusSnapshot`。
+3. 一期推荐以“实例终态回调更新触发流水”为主路径；必要时可增加定时修复任务作为兜底。
+4. 一期不强制要求通过事件总线实现回填，但必须保证回填不会重复创建新的触发流水记录。
 
 ### 7.3 列表汇总状态与详情展开
 

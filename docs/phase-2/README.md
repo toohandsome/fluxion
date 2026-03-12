@@ -1,16 +1,14 @@
-# 二期
+﻿# 二期（占位）
 
-二期用于承接平台增强和运维能力建设。
+二期用于承接平台增强与运维能力建设。
 
-规划范围包括：
+当前状态：尚未形成正式的二期需求与技术基线，暂以路线图为准。
 
-1. 子流程
-2. 模板库
-3. 脚本节点
-4. Redis 节点
-5. 失败重放与补偿
-6. Quartz 集群
-7. 指标、链路追踪与告警
-8. mysql/sqlserver/oracle 支持
+- 路线图入口：[../roadmap.md](../roadmap.md)
+- 当前占位范围：子流程、模板库、脚本节点、Redis 节点、Quartz 集群、观测告警、失败重放与补偿、更多数据库支持
 
-等进入二期时，再补充正式的 `requirements.md`、`technical-solution.md` 和 `plan.md`。
+进入二期开工时，再补充以下正式文档：
+
+- `requirements.md`
+- `technical-solution.md`
+- `plan.md`

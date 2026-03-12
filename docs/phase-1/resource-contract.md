@@ -44,6 +44,8 @@
 3. 前端查询资源详情时，`secret` 永不回显明文。
 4. 更新资源时，未显式传入的敏感字段保持原值。
 5. 一期不支持在流程节点内直接保存连接凭证。
+6. 一期资源级并发保护配置统一放入 `config`，不新增独立表字段。
+7. 资源级并发保护默认按 `resourceRef` 生效，推荐配置键为 `maxConcurrency`。
 
 ## 3. DB 资源契约
 
@@ -57,6 +59,7 @@
   "connectTimeoutMs": 3000,
   "socketTimeoutMs": 5000,
   "maxPoolSize": 10,
+  "maxConcurrency": 10,
   "connectionProperties": {
     "useUnicode": "true",
     "characterEncoding": "utf8"
@@ -74,7 +77,14 @@
 | `connectTimeoutMs` | number | 否 | 连接超时 |
 | `socketTimeoutMs` | number | 否 | 读写超时 |
 | `maxPoolSize` | number | 否 | 最大连接池大小 |
+| `maxConcurrency` | number | 否 | 资源级最大并发许可数，建议不高于 `maxPoolSize` |
 | `connectionProperties` | object | 否 | 附加 JDBC 参数 |
+
+补充约定：
+
+1. `maxConcurrency` 用于引擎执行前的资源级并发保护，不影响 JDBC 连接池自身实现。
+2. 未显式配置 `maxConcurrency` 时，引擎可回退为 `maxPoolSize` 或平台默认值。
+3. 若同时配置了 `maxConcurrency` 和 `maxPoolSize`，则必须满足 `maxConcurrency <= maxPoolSize`；否则资源保存或发布校验应返回 `RESOURCE_CONFIG_INVALID`。
 
 ### 3.2 secret 结构
 
@@ -105,6 +115,7 @@
   "baseUrl": "https://api.example.com",
   "connectTimeoutMs": 3000,
   "readTimeoutMs": 5000,
+  "maxConcurrency": 50,
   "defaultHeaders": {
     "Accept": "application/json"
   },
@@ -121,10 +132,16 @@
 | `baseUrl` | string | 是 | 外部服务基础地址 |
 | `connectTimeoutMs` | number | 否 | 连接超时 |
 | `readTimeoutMs` | number | 否 | 读超时 |
+| `maxConcurrency` | number | 否 | 资源级最大并发许可数，用于保护下游 HTTP 服务 |
 | `defaultHeaders` | object | 否 | 默认请求头 |
 | `authMode` | string | 否 | `NONE` / `BASIC` / `BEARER` / `APP_KEY` |
 | `testPath` | string | 否 | 测试连通性使用的路径 |
 | `testMethod` | string | 否 | 测试方法，默认 `GET` |
+
+补充约定：
+
+1. `maxConcurrency` 用于限制同一 HTTP 资源在引擎侧的并发请求数。
+2. 未配置 `maxConcurrency` 时，采用平台默认值。
 
 ### 4.2 secret 结构
 
@@ -244,6 +261,7 @@
 1. 已发布版本在运行时解析到禁用资源时，节点应失败并返回 `RESOURCE_DISABLED`。
 2. 资源禁用不会自动下线已存在的 endpoint 或 schedule。
 3. 资源禁用后产生的新实例会在首次使用该资源的节点处失败。
+4. 若节点执行前未能获取该资源的并发许可，则该次按一次失败 attempt 处理，并继续复用节点既有重试语义。
 
 ## 8. 一期推荐实现取舍
 

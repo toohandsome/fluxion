@@ -1,0 +1,61 @@
+﻿# Fluxion 文档总览
+
+本文档用于定义 Fluxion 文档结构、职责边界与维护规则，避免同一概念在多个文档中重复定义并逐步漂移。
+
+## 1. 文档分层
+
+### 1.1 L0：项目导读
+
+- [../README.md](../README.md)
+- 作用：面向仓库访客的快速说明，不承载可执行细则。
+
+### 1.2 L1：通用规范与路线
+
+- [base.md](./base.md)
+- [roadmap.md](./roadmap.md)
+- 作用：定义跨阶段通用规范与分期规划。
+
+### 1.3 L2：阶段基线
+
+- 一期：`phase-1/*`（正式基线）
+- 二期：`phase-2/*`（占位与规划）
+- 三期：`phase-3/*`（占位与规划）
+
+## 2. 单一事实源（SoT）
+
+| 主题 | 唯一维护文档 | 备注 |
+| --- | --- | --- |
+| 技术栈、数据库规范、统一响应结构、业务状态码 | [base.md](./base.md) | 跨阶段通用规范 |
+| 分期目标与阶段范围 | [roadmap.md](./roadmap.md) | 总体规划入口 |
+| 一期产品边界、功能范围、交付物 | [phase-1/requirements.md](./phase-1/requirements.md) | 需求基线 |
+| 一期技术实现与工程决策 | [phase-1/technical-solution.md](./phase-1/technical-solution.md) | 决策基线 |
+| 一期运行时语义 | [phase-1/runtime-semantics.md](./phase-1/runtime-semantics.md) | 执行语义唯一来源 |
+| HTTP 发布契约 | [phase-1/http-endpoint-contract.md](./phase-1/http-endpoint-contract.md) | 端点协议唯一来源 |
+| 资源契约 | [phase-1/resource-contract.md](./phase-1/resource-contract.md) | 资源协议唯一来源 |
+| 认证凭证契约 | [phase-1/auth-credential-contract.md](./phase-1/auth-credential-contract.md) | 凭证协议唯一来源 |
+| 调度契约 | [phase-1/schedule-contract.md](./phase-1/schedule-contract.md) | 调度协议唯一来源 |
+| 节点参数 Schema | [phase-1/node-schemas.md](./phase-1/node-schemas.md) | 节点配置唯一来源 |
+| `model_json` 运行时契约 | [phase-1/model-json-contract.md](./phase-1/model-json-contract.md) | Engine / Modeler 核心契约唯一来源 |
+| 一期错误码基线 | [phase-1/error-codes.md](./phase-1/error-codes.md) | 错误码唯一来源 |
+| 一期实施计划（里程碑与出口标准） | [phase-1/plan.md](./phase-1/plan.md) | 仅覆盖一期 |
+
+## 3. 维护规则
+
+1. `doc-structure.md` 只保留摘要和入口链接，不重复定义契约细节。
+2. `roadmap.md` 只维护阶段目标与范围，不展开字段级协议。
+3. `technical-solution.md` 关注设计决策，不重复定义已在契约文档固化的字段细则。
+4. 同一概念需要在多文档出现时，主文档写完整定义，其他文档仅写摘要并链接。
+5. 若 `RAWDOC/*` 与正式基线冲突，以 `docs/base.md` 与 `docs/phase-1/*` 为准。
+
+## 4. 快速入口
+
+- 一期总入口：[phase-1/requirements.md](./phase-1/requirements.md)
+- 一期契约集合：
+  - [phase-1/http-endpoint-contract.md](./phase-1/http-endpoint-contract.md)
+  - [phase-1/resource-contract.md](./phase-1/resource-contract.md)
+  - [phase-1/auth-credential-contract.md](./phase-1/auth-credential-contract.md)
+  - [phase-1/schedule-contract.md](./phase-1/schedule-contract.md)
+  - [phase-1/node-schemas.md](./phase-1/node-schemas.md)
+  - [phase-1/model-json-contract.md](./phase-1/model-json-contract.md)
+  - [phase-1/error-codes.md](./phase-1/error-codes.md)
+- 数据库脚本：[schema-pg.sql](./schema-pg.sql)

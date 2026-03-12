@@ -16,8 +16,8 @@
 
 1. `flx_http_endpoint.path` 存储的就是最终对外暴露的实际运行时路径。
 2. 运行时不再为 `path` 追加额外前缀（除了宿主项目的context-path前缀,需要提前检查是否与宿主项目已有path 冲突）。
-3. 如果与宿主项目已有path 冲突, 页面要提出出具体报错信息，禁止保存
-. 只有 `status = ONLINE` 的端点才能被运行时分发器匹配。
+3. 如果与宿主项目已有path 冲突, 页面要提出出具体报错信息，禁止保存。
+4. 只有 `status = ONLINE` 的端点才能被运行时分发器匹配。
 
 ### 2.2 版本解析规则
 
@@ -267,7 +267,7 @@
 
 约定：
 
-1. 一期 `authType` 只实现 BASIC_AUTH，`OPEN`、`APP_KEY`、`BEARER_TOKEN` 允许配置但不做校验。
+1. 一期 `authType` 只实现 `OPEN`、 `BASIC_AUTH`，`APP_KEY`、`BEARER_TOKEN` 允许配置但不做校验。
 2. 鉴权失败时固定返回 HTTP `200`，业务状态码为 `UNAUTHORIZED` 或 `FORBIDDEN`。
 
 ### 7.2 认证凭证引用规则

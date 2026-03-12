@@ -117,6 +117,17 @@
 4. 同一份 `inputMapping` 或 `outputMapping` 内的表达式基于同一快照求值，批量提交，不允许依赖同批次其他字段的写入顺序。
 5. 节点成功结束后，`nodes.<nodeId>.status = SUCCESS` 且 `nodes.<nodeId>.output` 可供后续节点访问。
 6. `SKIPPED` 节点允许只有 `status` 而没有 `output`；后续表达式对缺失字段按 `null` 处理。
+7. `outputMapping` 求值成功后，应立即写入实例内存态上下文 `nodes.<nodeId>.output`，随后在节点终态落库事务中同步持久化节点输出快照。
+
+### 4.4.1 节点持久化与事务边界
+
+1. 一期不提供分布式事务；节点对外部系统的调用与引擎自身数据库写入不处于同一事务。
+2. 节点真实执行阶段结束后，节点终态、节点输出快照和错误摘要应在同一个本地事务内写入：
+   - `flx_node_execution`
+   - `flx_node_execution_data`（若本次需要记录大字段）
+3. `flx_node_execution_attempt` 的状态推进也应保持本地事务一致性；单次 attempt 的开始、成功、失败分别按各自状态推进事务写入。
+4. 若节点执行过程中已拿到外部结果，但在写库前进程崩溃，则该次 attempt 视为未完成恢复场景，由实例恢复逻辑按现有 `at-least-once` 语义处理。
+5. 一期不要求节点中间态输入/输出采用批量延迟持久化；推荐在每个节点形成终态时落库，以降低实例级批量提交导致的一致性风险。
 
 ### 4.5 流程最终输出
 
@@ -130,6 +141,9 @@
 4. `flow.output` 是对该最终输出快照的只读表达式视图。
 5. HTTP 默认成功响应和异步结果查询中的 `result` 均以 `flow.output` 为准，不再约定使用 `vars.result`。
 6. 草稿阶段允许暂缺 `flowOutputMapping`；发布校验阶段若缺失，必须报错。
+7. `flowOutputMapping` 不做按节点增量求值；仅在所有有效节点成功结束后统一求值一次。
+8. 若 `flowOutputMapping` 求值发生 SpEL 异常或结果构造失败，则流程实例记为 `FAILED`，错误码建议使用 `FLOW_OUTPUT_EVAL_FAILED`。
+9. `flowOutputMapping` 求值失败时，不引入额外的特殊实例状态。
 
 ## 5. DAG 调度语义
 
@@ -189,6 +203,19 @@
 3. 实际并发度由引擎执行器全局上限控制。
 4. `flx_schedule_job.max_concurrency` 只控制同一调度任务可同时运行的实例数，不控制单个实例内部节点并发。
 5. 一期不开放节点级并行度配置。
+6. `log`、`variable`、`condition` 等轻量 CPU 节点默认内联执行，不额外切换执行线程。
+7. `http`、`dbQuery`、`dbUpdate` 等 I/O 节点允许并发，由引擎执行器统一调度。
+
+### 6.1.1 资源级并发保护
+
+1. 对 `http`、`dbQuery`、`dbUpdate` 这类依赖外部资源的节点，一期在执行前增加基于 `resourceRef` 的并发许可校验。
+2. 资源级并发许可用于保护外部服务、数据库连接和下游容量，不作为节点参数暴露给流程设计器。
+3. 一期并发许可的配额来源于引擎或资源侧配置，不引入节点级单独配置。
+4. 一期资源级并发许可采用基于 `resourceRef` 的 `Semaphore` 语义实现，目标是控制同时进入下游资源调用的节点数。
+5. 一期许可获取采用非阻塞 `tryAcquire` 语义，不引入排队等待、许可预约或令牌桶速率控制。
+6. 一期不引入独立排队状态和 `WAITING_FOR_PERMIT` 一类新状态；节点拿不到许可时，按一次失败 attempt 处理，并继续复用既有超时/重试语义。
+7. 节点因资源许可不足失败时，建议错误码使用 `RESOURCE_PERMIT_EXHAUSTED`。
+8. 资源级并发保护属于引擎内部治理能力，不改变 `flx_schedule_job.max_concurrency` 的实例级含义。
 
 ### 6.2 超时语义
 
@@ -201,10 +228,12 @@
 
 1. `retry = 0` 表示失败后不重试。
 2. 总尝试次数固定为 `1 + retry`。
-3. 只有真实进入执行的节点才生成 attempt 记录；每次真实 attempt 都必须写入 `flx_node_execution_attempt`。
+3. 一次真实 attempt 从节点开始申请执行资源起计算，包含资源许可获取、实际执行和失败回收过程；每次真实 attempt 都必须写入 `flx_node_execution_attempt`。
 4. `SKIPPED` 节点不生成 `flx_node_execution_attempt` 记录。
 5. 节点最终成功时，`flx_node_execution.status = SUCCESS`。
 6. 节点最终失败时，`flx_node_execution.status = FAILED`，并记录错误摘要和最后一次异常。
+7. 若节点因 `resourceRef` 并发许可不足未能进入下游资源调用，该次也视为一次失败 attempt，并按现有重试规则处理。
+8. 资源许可不足不会导致无限重试；其重试上限与普通执行失败一致，固定受 `retry` 控制。
 
 ### 6.4 副作用节点策略
 
@@ -221,6 +250,14 @@
 3. 流程失败后，不再调度新的下游节点。
 4. 已经在运行中的节点可等待其当前 attempt 结束后回收，但其结果不再改变流程最终状态。
 5. 流程进入 fail-fast 后，对尚未形成调度结论的节点不补写 `SKIPPED`，也不补写 `flx_node_execution`。
+
+### 7.1.1 fail-fast 下的监控展示语义
+
+1. `SKIPPED` 只用于调度器已明确得出“本次不会执行”结论的节点，不用于表示 fail-fast 后尚未进入调度判定的节点。
+2. 若流程实例已进入 `FAILED`，某节点存在于 `model_json` 中，但运行态未生成任何 `flx_node_execution` 记录，则说明该节点在 fail-fast 前尚未形成调度结论。
+3. Admin 监控页或执行详情页可将上述“模型中存在但无执行记录”的节点派生展示为 `NOT_SCHEDULED` 或 `ABORTED_BY_FAIL_FAST`。
+4. `NOT_SCHEDULED` / `ABORTED_BY_FAIL_FAST` 属于监控展示派生态，不属于一期正式持久化状态，也不回写数据库。
+5. 一期数据库与运行态正式状态仍只使用 `CREATED`、`RUNNING`、`SUCCESS`、`FAILED`、`CANCELLED`、`SKIPPED` 六类状态。
 
 ### 7.2 成功结束
 

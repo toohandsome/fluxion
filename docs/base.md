@@ -13,7 +13,6 @@ JSON 处理库: Jackson（springboot自带）
 HTTP 客户端: OkHttp
 orm：MyBatis-Plus
 数据库自动化：Flyway
-安全：Spring Security
 参数校验：spring-boot-starter-validation
 接口文档：knife4j-openapi3-jakarta-spring-boot-starter
 任务调度：Quartz

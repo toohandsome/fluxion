@@ -1,0 +1,874 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fluxion.dev/schema/phase-1/model-json.schema.json",
+  "title": "Fluxion Phase 1 Runtime Model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "modelVersion",
+    "flowDefId",
+    "flowVersionId",
+    "flowCode",
+    "flowName",
+    "flowOutputMapping",
+    "startNodeIds",
+    "nodes",
+    "edges",
+    "topology"
+  ],
+  "properties": {
+    "modelVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "flowDefId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "flowVersionId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "flowCode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "flowName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "flowOutputMapping": {
+      "$ref": "#/$defs/mappingObject"
+    },
+    "startNodeIds": {
+      "$ref": "#/$defs/nodeIdArrayMin1"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/runtimeNode"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/runtimeEdge"
+      }
+    },
+    "topology": {
+      "$ref": "#/$defs/topology"
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensionsObject"
+    }
+  },
+  "$comment": "DAG、唯一性、拓扑一致性、表达式语义、资源存在性由编译期语义校验负责。",
+  "$defs": {
+    "extensionsObject": {
+      "type": "object"
+    },
+    "nodeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nodeIdArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/nodeId"
+      }
+    },
+    "nodeIdArrayMin1": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/nodeId"
+      }
+    },
+    "mappingValue": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mappingValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/mappingValue"
+          }
+        }
+      ]
+    },
+    "mappingObject": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/mappingValue"
+      }
+    },
+    "kvEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "value"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "$ref": "#/$defs/mappingValue"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "sqlParamEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "value"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "value": {
+          "$ref": "#/$defs/mappingValue"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "runtimePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeoutMs",
+        "retry",
+        "retryIntervalMs",
+        "logEnabled"
+      ],
+      "properties": {
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "retry": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "retryIntervalMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "logEnabled": {
+          "type": "boolean"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "readOnlySideEffectPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "const": "READ_ONLY"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "compensableSideEffectPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "compensationStrategy"
+      ],
+      "properties": {
+        "type": {
+          "const": "COMPENSABLE"
+        },
+        "compensationStrategy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "orderedNodeIds",
+        "levelGroups",
+        "terminalNodeIds"
+      ],
+      "properties": {
+        "orderedNodeIds": {
+          "$ref": "#/$defs/nodeIdArrayMin1"
+        },
+        "levelGroups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/nodeId"
+            }
+          }
+        },
+        "terminalNodeIds": {
+          "$ref": "#/$defs/nodeIdArrayMin1"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "runtimeEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edgeId",
+        "sourceNodeId",
+        "targetNodeId",
+        "branchKey"
+      ],
+      "properties": {
+        "edgeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceNodeId": {
+          "$ref": "#/$defs/nodeId"
+        },
+        "targetNodeId": {
+          "$ref": "#/$defs/nodeId"
+        },
+        "branchKey": {
+          "type": "string",
+          "enum": [
+            "default",
+            "true",
+            "false"
+          ]
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "nodeBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeId",
+        "nodeType",
+        "nodeName",
+        "incomingNodeIds",
+        "outgoingNodeIds",
+        "config",
+        "inputMapping",
+        "outputMapping",
+        "runtimePolicy"
+      ],
+      "properties": {
+        "nodeId": {
+          "$ref": "#/$defs/nodeId"
+        },
+        "nodeType": {
+          "type": "string"
+        },
+        "nodeName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "incomingNodeIds": {
+          "$ref": "#/$defs/nodeIdArray"
+        },
+        "outgoingNodeIds": {
+          "$ref": "#/$defs/nodeIdArray"
+        },
+        "config": {
+          "type": "object"
+        },
+        "inputMapping": {
+          "$ref": "#/$defs/mappingObject"
+        },
+        "outputMapping": {
+          "$ref": "#/$defs/mappingObject"
+        },
+        "runtimePolicy": {
+          "$ref": "#/$defs/runtimePolicy"
+        },
+        "sideEffectPolicy": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/readOnlySideEffectPolicy"
+            },
+            {
+              "$ref": "#/$defs/compensableSideEffectPolicy"
+            }
+          ]
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "logNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "not": {
+            "required": [
+              "sideEffectPolicy"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "nodeType": {
+              "const": "log"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "level",
+                "message",
+                "loggerName",
+                "printContext"
+              ],
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "DEBUG",
+                    "INFO",
+                    "WARN",
+                    "ERROR"
+                  ]
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "loggerName": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "printContext": {
+                  "type": "boolean"
+                },
+                "extensions": {
+                  "$ref": "#/$defs/extensionsObject"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "variableSetConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "targetVar",
+        "valueExpr",
+        "writeScope",
+        "overwrite"
+      ],
+      "properties": {
+        "mode": {
+          "const": "SET"
+        },
+        "targetVar": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "valueExpr": {
+          "type": "string",
+          "minLength": 1
+        },
+        "writeScope": {
+          "const": "FLOW"
+        },
+        "overwrite": {
+          "type": "boolean"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "variableTransformConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "targetVar",
+        "transformExpr",
+        "writeScope",
+        "overwrite"
+      ],
+      "properties": {
+        "mode": {
+          "const": "TRANSFORM"
+        },
+        "targetVar": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "sourceExpr": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transformExpr": {
+          "type": "string",
+          "minLength": 1
+        },
+        "writeScope": {
+          "const": "FLOW"
+        },
+        "overwrite": {
+          "type": "boolean"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      }
+    },
+    "variableNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "not": {
+            "required": [
+              "sideEffectPolicy"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "nodeType": {
+              "const": "variable"
+            },
+            "config": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/variableSetConfig"
+                },
+                {
+                  "$ref": "#/$defs/variableTransformConfig"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "conditionNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "not": {
+            "required": [
+              "sideEffectPolicy"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "nodeType": {
+              "const": "condition"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conditionExpr",
+                "nullAsFalse"
+              ],
+              "properties": {
+                "conditionExpr": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "nullAsFalse": {
+                  "type": "boolean"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "extensions": {
+                  "$ref": "#/$defs/extensionsObject"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "httpConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resourceRef",
+        "method",
+        "path",
+        "queryParams",
+        "headers",
+        "bodyType",
+        "expectedStatus"
+      ],
+      "properties": {
+        "resourceRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "queryParams": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kvEntry"
+          }
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kvEntry"
+          }
+        },
+        "bodyType": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "JSON",
+            "FORM",
+            "RAW"
+          ]
+        },
+        "bodyJson": {
+          "$ref": "#/$defs/mappingValue"
+        },
+        "formFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kvEntry"
+          }
+        },
+        "rawBody": {
+          "type": "string"
+        },
+        "expectedStatus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "bodyType": {
+                "const": "NONE"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "bodyJson"
+                  ]
+                },
+                {
+                  "required": [
+                    "formFields"
+                  ]
+                },
+                {
+                  "required": [
+                    "rawBody"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "bodyType": {
+                "const": "JSON"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "bodyJson"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "bodyType": {
+                "const": "FORM"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "formFields"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "bodyType": {
+                "const": "RAW"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "rawBody"
+            ]
+          }
+        }
+      ]
+    },
+    "httpNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "type": "object",
+          "required": [
+            "sideEffectPolicy"
+          ],
+          "properties": {
+            "nodeType": {
+              "const": "http"
+            },
+            "sideEffectPolicy": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/readOnlySideEffectPolicy"
+                },
+                {
+                  "$ref": "#/$defs/compensableSideEffectPolicy"
+                }
+              ]
+            },
+            "config": {
+              "$ref": "#/$defs/httpConfig"
+            }
+          }
+        }
+      ]
+    },
+    "dbQueryNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "not": {
+            "required": [
+              "sideEffectPolicy"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "nodeType": {
+              "const": "dbQuery"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "resourceRef",
+                "sql",
+                "params",
+                "resultMode",
+                "fetchSize"
+              ],
+              "properties": {
+                "resourceRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sql": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "params": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/sqlParamEntry"
+                  }
+                },
+                "resultMode": {
+                  "type": "string",
+                  "enum": [
+                    "ONE",
+                    "LIST"
+                  ]
+                },
+                "fetchSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                },
+                "extensions": {
+                  "$ref": "#/$defs/extensionsObject"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "dbUpdateNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nodeBase"
+        },
+        {
+          "type": "object",
+          "required": [
+            "sideEffectPolicy"
+          ],
+          "properties": {
+            "nodeType": {
+              "const": "dbUpdate"
+            },
+            "sideEffectPolicy": {
+              "$ref": "#/$defs/compensableSideEffectPolicy"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "resourceRef",
+                "sql",
+                "params",
+                "returnGeneratedKeys"
+              ],
+              "properties": {
+                "resourceRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sql": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "params": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/sqlParamEntry"
+                  }
+                },
+                "returnGeneratedKeys": {
+                  "type": "boolean"
+                },
+                "extensions": {
+                  "$ref": "#/$defs/extensionsObject"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "runtimeNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/logNode"
+        },
+        {
+          "$ref": "#/$defs/variableNode"
+        },
+        {
+          "$ref": "#/$defs/conditionNode"
+        },
+        {
+          "$ref": "#/$defs/httpNode"
+        },
+        {
+          "$ref": "#/$defs/dbQueryNode"
+        },
+        {
+          "$ref": "#/$defs/dbUpdateNode"
+        }
+      ]
+    }
+  }
+}
