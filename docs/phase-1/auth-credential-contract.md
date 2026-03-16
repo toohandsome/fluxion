@@ -12,9 +12,10 @@
 
 ## 2. 一期边界
 
-1. 一期仅支持 `BASIC_AUTH` 与 `OPEN` 。
+1. 一期实现 `BASIC_AUTH` 与 `OPEN` 。
 2. `OPEN` 不需要认证凭证。
 3. HTTP 端点通过 `authCredentialId` 关联认证凭证。
+4. APP_KEY、BEARER_TOKEN 允许配置但不做校验
 
 ## 3. 认证凭证公共模型
 

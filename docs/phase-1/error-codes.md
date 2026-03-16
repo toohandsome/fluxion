@@ -8,12 +8,24 @@
 
 | 维度 | 范围 | 说明 |
 | --- | --- | --- |
+| `COMMON` | 通用平台错误 | 可被多个接口层复用的统一错误 |
 | `MANAGEMENT` | Admin API | 面向设计、发布、资源、调度管理 |
 | `RUNTIME` | Runtime API | 面向同步/异步触发与结果查询 |
 | `SCHEDULER` | 调度投递与等待 | 面向 Quartz 触发、并发门禁、等待回填 |
 | `ENGINE` | 模型编译与节点执行 | 面向 DAG 校验、表达式求值、节点执行 |
 
-## 3. MANAGEMENT 错误码
+## 3. COMMON 错误码
+
+| 错误码 | 说明 |
+| --- | --- |
+| `OK` | 请求成功 |
+| `VALIDATION_ERROR` | 参数或请求结构非法 |
+| `UNAUTHORIZED` | 未通过认证 |
+| `FORBIDDEN` | 无权限访问或访问被拒绝 |
+| `RATE_LIMITED` | 触发限流 |
+| `INTERNAL_ERROR` | 系统内部错误 |
+
+## 4. MANAGEMENT 错误码
 
 | 错误码 | 说明 |
 | --- | --- |
@@ -31,20 +43,22 @@
 | `SCHEDULE_NOT_FOUND` | 调度任务不存在 |
 | `SCHEDULE_CONFLICT` | 调度任务状态冲突或非法状态切换 |
 | `HTTP_ENDPOINT_NOT_FOUND` | HTTP 发布接口不存在 |
+| `RESOURCE_TEST_FAILED` | 资源连通性测试失败 |
 
-## 4. RUNTIME 错误码
+## 5. RUNTIME 错误码
 
 | 错误码 | 说明 |
 | --- | --- |
-| `OK` | 成功结束 |
 | `ACCEPTED` | 异步触发已受理 |
 | `INSTANCE_RUNNING` | 实例仍在运行 |
 | `SYNC_TIMEOUT` | 同步触发等待超时，实例继续后台运行 |
 | `FLOW_FAILED` | 流程失败结束 |
 | `INSTANCE_NOT_FOUND` | 实例不存在 |
 | `FLOW_OUTPUT_EVAL_FAILED` | `flowOutputMapping` 求值失败 |
+| `ENDPOINT_NOT_FOUND` | 运行时端点不存在 |
+| `ENDPOINT_OFFLINE` | 运行时端点未上线 |
 
-## 5. SCHEDULER 错误码 / 状态原因码
+## 6. SCHEDULER 错误码 / 状态原因码
 
 | 错误码 | 说明 |
 | --- | --- |
@@ -54,9 +68,9 @@
 | `WAIT_TIMEOUT` | 调度侧等待超时 |
 | `TRIGGER_LOG_NOT_FOUND` | 触发流水不存在 |
 
-## 6. ENGINE 错误码
+## 7. ENGINE 错误码
 
-### 6.1 模型编译与结构校验
+### 7.1 模型编译与结构校验
 
 | 错误码 | 说明 |
 | --- | --- |
@@ -71,7 +85,7 @@
 | `RESOURCE_REF_INVALID` | 资源引用非法 |
 | `FLOW_OUTPUT_MAPPING_MISSING` | 发布时缺少 `flowOutputMapping` |
 
-### 6.2 表达式与执行
+### 7.2 表达式与执行
 
 | 错误码 | 说明 |
 | --- | --- |
@@ -85,8 +99,8 @@
 | `DB_UPDATE_FAILED` | 数据库更新节点失败 |
 | `RESOURCE_DISABLED` | 运行时解析到禁用资源 |
 
-## 7. 使用约定
+## 8. 使用约定
 
 1. 一期对外接口统一返回 HTTP `200` 包装体，业务状态由 `code` 表示。
 2. 节点执行表和 attempt 表中的 `error_code` 优先使用本文档中的 `ENGINE` / `SCHEDULER` 错误码。
-3. 同一失败场景若同时存在平台错误码与底层异常信息，平台错误码写入 `errorCode`，底层异常摘要写入 `errorMessage` 或 `error_log`。
+3. 同一失败场景若同时存在平台错误码与底层异常信息，平台错误码写入 `errorCode`，底层异常摘要写入 `errorMessage`，详细长文本或堆栈写入 `error_detail`。

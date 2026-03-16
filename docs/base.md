@@ -37,6 +37,8 @@ HTTP: Axios
 ## 数据库规范
 
 - **时间格式：** 所有时间字段统一使用 `yyyy-MM-dd HH:mm:ss.SSS` 格式
+- **默认时区：** 一期默认业务时区固定为东八区（北京时间），IANA 时区标识为 `Asia/Shanghai`，UTC 偏移为 `UTC+08:00`
+- **时间解释规则：** 文档、接口示例、数据库脚本注释以及未显式携带时区的时间字符串，均按 `Asia/Shanghai` 解释；若后续需要跨时区扩展，再通过显式 offset 或时区字段表达
 - **命名规范：** 数据库表名采用下划线命名法（snake_case）
 - **字符集：**
   数据库字符集统一采用 `utf8`
@@ -58,10 +60,10 @@ HTTP: Axios
 
 ### 统一约束
 
-1. 除运行时 HTTP 接口可自定义响应 data 映射外，其他接口固定返回统一 JSON 格式：`application/json`
-2. 除运行时 HTTP 接口可自定义响应 状态码 映射外，其他接口的 HTTP 状态码固定返回 `200`
+1. 接口固定返回统一 JSON 格式：`application/json`
+2. 接口的 HTTP 状态码固定返回 `200`
 3. HTTP 状态码不承载业务语义，成功、失败、运行中、鉴权失败、限流等状态全部通过业务状态码表达
-4. 除运行时 HTTP 接口可自定义响应 状态码 映射外，其他接口都必须返回 `requestId`
+4. 除运行时 HTTP 接口可自定义外，其他接口都必须返回 `requestId`
 5. `code` 统一使用字符串业务状态码
 
 ### 响应结构
@@ -115,26 +117,12 @@ HTTP: Axios
 }
 ```
 
-### 一期推荐业务状态码
+### 业务状态码来源
 
-| 状态码 | 说明 |
-| --- | --- |
-| `OK` | 请求成功 |
-| `ACCEPTED` | 异步请求已受理 |
-| `INSTANCE_RUNNING` | 实例仍在运行 |
-| `VALIDATION_ERROR` | 参数或模型校验失败 |
-| `FLOW_NOT_FOUND` | 流程不存在 |
-| `VERSION_NOT_FOUND` | 版本不存在 |
-| `ENDPOINT_NOT_FOUND` | 运行时端点不存在 |
-| `ENDPOINT_OFFLINE` | 运行时端点未上线 |
-| `SCHEDULE_NOT_FOUND` | 定时任务不存在 |
-| `SCHEDULE_CONFLICT` | 定时任务状态冲突或不允许的状态变更 |
-| `RESOURCE_NOT_FOUND` | 资源不存在 |
-| `RESOURCE_DISABLED` | 资源已禁用 |
-| `RESOURCE_TEST_FAILED` | 资源连通性测试失败 |
-| `UNAUTHORIZED` | 未通过认证 |
-| `FORBIDDEN` | 无权限访问 |
-| `RATE_LIMITED` | 触发限流 |
-| `FLOW_FAILED` | 流程执行失败 |
-| `SYNC_TIMEOUT` | 同步等待超时 |
-| `INTERNAL_ERROR` | 系统内部错误 |
+业务状态码的正式定义、分层归属和使用约定以 [phase-1/error-codes.md](./phase-1/error-codes.md) 为准，`base.md` 不再重复维护完整状态码表。
+
+本文件仅保留以下通用约束：
+
+1. `code` 一律使用字符串业务状态码。
+2. 业务状态码不依赖 HTTP 状态码表达语义。
+3. 若新增错误码，应优先补充到 `error-codes.md`，而不是直接扩写到 `base.md`。

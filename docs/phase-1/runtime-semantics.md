@@ -142,7 +142,7 @@
 5. HTTP 默认成功响应和异步结果查询中的 `result` 均以 `flow.output` 为准，不再约定使用 `vars.result`。
 6. 草稿阶段允许暂缺 `flowOutputMapping`；发布校验阶段若缺失，必须报错。
 7. `flowOutputMapping` 不做按节点增量求值；仅在所有有效节点成功结束后统一求值一次。
-8. 若 `flowOutputMapping` 求值发生 SpEL 异常或结果构造失败，则流程实例记为 `FAILED`，错误码建议使用 `FLOW_OUTPUT_EVAL_FAILED`。
+8. 若 `flowOutputMapping` 求值发生 SpEL 异常或结果构造失败，则流程实例记为 `FAILED`，错误码建议使用 `FLOW_OUTPUT_EVAL_FAILED`，并写入实例级 `error_code` / `error_message` 摘要。
 9. `flowOutputMapping` 求值失败时，不引入额外的特殊实例状态。
 
 ## 5. DAG 调度语义
@@ -234,6 +234,8 @@
 6. 节点最终失败时，`flx_node_execution.status = FAILED`，并记录错误摘要和最后一次异常。
 7. 若节点因 `resourceRef` 并发许可不足未能进入下游资源调用，该次也视为一次失败 attempt，并按现有重试规则处理。
 8. 资源许可不足不会导致无限重试；其重试上限与普通执行失败一致，固定受 `retry` 控制。
+9. 为避免资源持续繁忙时形成重试风暴，若失败原因是 `RESOURCE_PERMIT_EXHAUSTED`，则下一次重试应在 `retryIntervalMs` 基础上附加随机抖动（jitter）后再发起。
+10. 一期不要求引入专门的资源等待队列；对 `RESOURCE_PERMIT_EXHAUSTED` 的抖动退避仍属于节点既有重试语义的一部分。
 
 ### 6.4 副作用节点策略
 
@@ -250,6 +252,10 @@
 3. 流程失败后，不再调度新的下游节点。
 4. 已经在运行中的节点可等待其当前 attempt 结束后回收，但其结果不再改变流程最终状态。
 5. 流程进入 fail-fast 后，对尚未形成调度结论的节点不补写 `SKIPPED`，也不补写 `flx_node_execution`。
+6. 若因节点失败导致流程失败，则 `flx_flow_instance.error_code = flx_node_execution.error_code`，`flx_flow_instance.error_message` 记录节点错误摘要。
+7. 若因 `flowOutputMapping` 求值失败导致流程失败，则实例级错误摘要写入 `error_code = FLOW_OUTPUT_EVAL_FAILED` 和对应 `error_message`。
+8. 若因调度侧或运行时入口级失败而流程实例已创建，也必须写入实例级 `error_code` / `error_message`。
+9. 详细错误说明、长文本、异常堆栈和补充上下文写入 `flx_flow_instance_data.error_detail`；实例主表只保留摘要字段。
 
 ### 7.1.1 fail-fast 下的监控展示语义
 

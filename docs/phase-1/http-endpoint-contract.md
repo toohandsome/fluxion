@@ -187,6 +187,7 @@
 {
   "successDataMapping": {
     "instanceId": "${instance.instanceId}",
+    "status": "${instance.status}",
     "result": "${flow.output}"
   },
   "runningDataMapping": {
@@ -214,7 +215,7 @@
 规则：
 
 1. `successDataMapping`、`runningDataMapping`、`failureDataMapping` 只允许使用稳定命名空间求值；成功场景额外提供只读 `flow.output`。
-2. 未配置 `successDataMapping` 时，默认返回 `{ "result": flow.output }`。
+2. 未配置 `successDataMapping` 时，默认返回 `{ "instanceId": instance.instanceId, "status": instance.status, "result": flow.output }`。
 3. 未配置 `runningDataMapping` 时，默认返回 `instanceId`、`status`、`queryUrl`。
 4. 未配置 `failureDataMapping` 时，默认返回 `instanceId`、`status`、`errorCode`、`errorMessage`。
 5. `response_config` 只负责映射统一响应包中的 `data`，不改变 `code`、`message`、`requestId` 和 HTTP 状态码。
@@ -267,8 +268,9 @@
 
 约定：
 
-1. 一期 `authType` 只实现 `OPEN`、 `BASIC_AUTH`，`APP_KEY`、`BEARER_TOKEN` 允许配置但不做校验。
-2. 鉴权失败时固定返回 HTTP `200`，业务状态码为 `UNAUTHORIZED` 或 `FORBIDDEN`。
+1. 一期 `authType` 只实现 `OPEN`、 `BASIC_AUTH`
+2. `APP_KEY`、`BEARER_TOKEN` 允许配置但不做校验。
+3. 鉴权失败时固定返回 HTTP `200`，业务状态码为 `UNAUTHORIZED` 或 `FORBIDDEN`。
 
 ### 7.2 认证凭证引用规则
 
@@ -366,7 +368,7 @@
 
 ## 9. 一期设计取舍
 
-1. 运行时全部返回 HTTP `200`，避免双重状态语义（除了Http接口发布时的自定义状态码）。
+1. 运行时全部返回 HTTP `200`，避免双重状态语义。
 2. 参数提取、校验、类型转换先于流程实例创建。
 3. 同步和异步模式的差异仅在等待行为，不在响应结构。
 4. 一期响应格式固定为 JSON 包装，`response_config` 只控制 `data` 映射。

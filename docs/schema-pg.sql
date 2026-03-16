@@ -139,6 +139,8 @@ CREATE TABLE flx_flow_instance (
     start_time TIMESTAMP(3) DEFAULT NULL,
     end_time TIMESTAMP(3) DEFAULT NULL,
     duration_ms BIGINT DEFAULT NULL,
+    error_code VARCHAR(64) DEFAULT NULL,
+    error_message VARCHAR(1000) DEFAULT NULL,
     create_time TIMESTAMP(3) NOT NULL,
     create_by VARCHAR(64) DEFAULT NULL,
     update_time TIMESTAMP(3) DEFAULT NULL,
@@ -163,6 +165,8 @@ COMMENT ON COLUMN flx_flow_instance.status IS '状态: 0-已创建, 1-运行中,
 COMMENT ON COLUMN flx_flow_instance.start_time IS '开始时间';
 COMMENT ON COLUMN flx_flow_instance.end_time IS '结束时间';
 COMMENT ON COLUMN flx_flow_instance.duration_ms IS '总耗时(毫秒)';
+COMMENT ON COLUMN flx_flow_instance.error_code IS '实例级错误码摘要';
+COMMENT ON COLUMN flx_flow_instance.error_message IS '实例级错误消息摘要';
 COMMENT ON COLUMN flx_flow_instance.create_time IS '创建时间';
 COMMENT ON COLUMN flx_flow_instance.create_by IS '触发人';
 COMMENT ON COLUMN flx_flow_instance.update_time IS '更新时间';
@@ -183,7 +187,7 @@ CREATE TABLE flx_flow_instance_data (
     input_data TEXT,
     output_data TEXT,
     global_context TEXT,
-    error_msg TEXT,
+    error_detail TEXT,
     create_time TIMESTAMP(3) NOT NULL,
     update_time TIMESTAMP(3) DEFAULT NULL,
     CONSTRAINT pk_flx_flow_instance_data PRIMARY KEY (instance_id)
@@ -195,7 +199,7 @@ COMMENT ON COLUMN flx_flow_instance_data.tenant_id IS '租户ID';
 COMMENT ON COLUMN flx_flow_instance_data.input_data IS '触发输入快照(JSON)';
 COMMENT ON COLUMN flx_flow_instance_data.output_data IS '最终输出快照(JSON)';
 COMMENT ON COLUMN flx_flow_instance_data.global_context IS '全局上下文快照(JSON)';
-COMMENT ON COLUMN flx_flow_instance_data.error_msg IS '流程级异常信息';
+COMMENT ON COLUMN flx_flow_instance_data.error_detail IS '详细错误说明 / 长文本 / 堆栈 / 补充上下文';
 COMMENT ON COLUMN flx_flow_instance_data.create_time IS '创建时间';
 COMMENT ON COLUMN flx_flow_instance_data.update_time IS '更新时间';
 
@@ -262,7 +266,7 @@ CREATE TABLE flx_node_execution_data (
     tenant_id VARCHAR(64) NOT NULL DEFAULT 'default',
     input_data TEXT,
     output_data TEXT,
-    error_log TEXT,
+    error_detail TEXT,
     create_time TIMESTAMP(3) NOT NULL,
     update_time TIMESTAMP(3) DEFAULT NULL,
     CONSTRAINT pk_flx_node_execution_data PRIMARY KEY (execution_id)
@@ -273,7 +277,7 @@ COMMENT ON COLUMN flx_node_execution_data.execution_id IS '共享主键, 关联 
 COMMENT ON COLUMN flx_node_execution_data.tenant_id IS '租户ID';
 COMMENT ON COLUMN flx_node_execution_data.input_data IS '节点输入快照(JSON)';
 COMMENT ON COLUMN flx_node_execution_data.output_data IS '节点输出快照(JSON)';
-COMMENT ON COLUMN flx_node_execution_data.error_log IS '异常堆栈';
+COMMENT ON COLUMN flx_node_execution_data.error_detail IS '详细错误说明 / 长文本 / 堆栈 / 补充上下文';
 COMMENT ON COLUMN flx_node_execution_data.create_time IS '创建时间';
 COMMENT ON COLUMN flx_node_execution_data.update_time IS '更新时间';
 
