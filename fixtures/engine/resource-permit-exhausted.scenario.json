@@ -1,0 +1,126 @@
+{
+  "caseId": "engine/resource-permit-exhausted",
+  "suite": "engine-scenarios",
+  "description": "Permit acquisition failure should consume attempts and fail fast once retries are exhausted.",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3006,
+    "flowVersionId": 4006,
+    "flowCode": "engine_resource_permit_exhausted",
+    "flowName": "Engine Resource Permit Exhausted",
+    "variables": [],
+    "flowOutputMapping": {
+      "done": "${nodes.node_log_after.output.done}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_http_permit",
+        "nodeType": "http",
+        "nodeName": "Permit guarded HTTP",
+        "config": {
+          "resourceRef": "mock-http",
+          "method": "GET",
+          "path": "/permit",
+          "queryParams": [],
+          "headers": [],
+          "bodyType": "NONE",
+          "expectedStatus": 200
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "body": "${raw.body}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 1,
+          "retryIntervalMs": 10,
+          "logEnabled": true
+        },
+        "sideEffectPolicy": {
+          "type": "READ_ONLY"
+        }
+      },
+      {
+        "nodeId": "node_log_after",
+        "nodeType": "log",
+        "nodeName": "After permit",
+        "config": {
+          "level": "INFO",
+          "message": "after permit",
+          "loggerName": "fluxion.engine",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "done": true
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_http_after",
+        "sourceNodeId": "node_http_permit",
+        "targetNodeId": "node_log_after",
+        "branchKey": "default"
+      }
+    ]
+  },
+  "resources": {
+    "http": {
+      "node_http_permit": {
+        "status": 200,
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    "resourcePermits": {
+      "mock-http": {
+        "sequence": [
+          false,
+          false
+        ]
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "FAILED",
+    "errorCode": "RESOURCE_PERMIT_EXHAUSTED",
+    "nodeStatuses": {
+      "node_http_permit": "FAILED"
+    },
+    "nodeErrorCodes": {
+      "node_http_permit": "RESOURCE_PERMIT_EXHAUSTED"
+    },
+    "attemptCounts": {
+      "node_http_permit": 2
+    },
+    "missingNodes": [
+      "node_log_after"
+    ],
+    "attemptDetails": {
+      "node_http_permit": [
+        {
+          "attempt": 1,
+          "status": "FAILED",
+          "errorCode": "RESOURCE_PERMIT_EXHAUSTED"
+        },
+        {
+          "attempt": 2,
+          "status": "FAILED",
+          "errorCode": "RESOURCE_PERMIT_EXHAUSTED"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#6.1.1-资源级并发保护",
+    "docs/phase-1/runtime-semantics.md#6.3-重试语义"
+  ]
+}

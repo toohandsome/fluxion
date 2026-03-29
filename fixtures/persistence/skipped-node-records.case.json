@@ -1,0 +1,129 @@
+{
+  "caseId": "persistence/skipped-node-records",
+  "suite": "persistence-integration",
+  "description": "分支未命中产生的 SKIPPED 节点应落库 skip_reason。",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 8002,
+    "flowVersionId": 9002,
+    "flowCode": "persistence_skipped",
+    "flowName": "Persistence Skipped",
+    "variables": [
+      {
+        "name": "allow",
+        "type": "BOOLEAN"
+      }
+    ],
+    "flowOutputMapping": {
+      "branch": "${nodes.node_log_false.output.branch}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_condition_1",
+        "nodeType": "condition",
+        "nodeName": "判断",
+        "config": {
+          "conditionExpr": "${vars.allow}",
+          "nullAsFalse": true
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "matched": "${raw}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_true",
+        "nodeType": "log",
+        "nodeName": "命中 true",
+        "config": {
+          "level": "INFO",
+          "message": "true",
+          "loggerName": "fluxion.persistence",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "branch": "true"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_false",
+        "nodeType": "log",
+        "nodeName": "命中 false",
+        "config": {
+          "level": "INFO",
+          "message": "false",
+          "loggerName": "fluxion.persistence",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "branch": "false"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_true",
+        "sourceNodeId": "node_condition_1",
+        "targetNodeId": "node_log_true",
+        "branchKey": "true"
+      },
+      {
+        "edgeId": "edge_false",
+        "sourceNodeId": "node_condition_1",
+        "targetNodeId": "node_log_false",
+        "branchKey": "false"
+      }
+    ]
+  },
+  "trigger": {
+    "vars": {
+      "allow": false
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "skipReason": {
+      "node_log_true": "BRANCH_NOT_MATCHED"
+    },
+    "nodeAttemptCounts": {
+      "node_condition_1": 1,
+      "node_log_true": 0,
+      "node_log_false": 1
+    },
+    "attempts": {
+      "node_condition_1": [
+        {
+          "attempt_no": 1,
+          "status": "SUCCESS"
+        }
+      ],
+      "node_log_true": [],
+      "node_log_false": [
+        {
+          "attempt_no": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  }
+}

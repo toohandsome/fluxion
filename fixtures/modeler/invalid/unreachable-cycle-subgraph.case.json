@@ -1,0 +1,127 @@
+{
+  "caseId": "modeler/invalid/unreachable-cycle-subgraph",
+  "suite": "contracts",
+  "kind": "invalid",
+  "description": "存在无入度起点的主链路之外，又有一个独立循环子图；循环中的节点无法从任何自动推导出的 start 节点到达。",
+  "expect": {
+    "primaryErrorCode": "UNREACHABLE_NODE",
+    "stage": "STRUCTURE_VALIDATE"
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 1005,
+    "flowVersionId": 2005,
+    "flowCode": "demo_unreachable_cycle_subgraph",
+    "flowName": "Demo Unreachable Cycle Subgraph",
+    "variables": [],
+    "flowOutputMapping": {
+      "result": "${nodes.node_log_2.output}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "日志1",
+        "config": {
+          "level": "INFO",
+          "message": "first",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "first"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_2",
+        "nodeType": "log",
+        "nodeName": "日志2",
+        "config": {
+          "level": "INFO",
+          "message": "second",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "second"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_3",
+        "nodeType": "log",
+        "nodeName": "日志3",
+        "config": {
+          "level": "INFO",
+          "message": "third",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "third"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_4",
+        "nodeType": "log",
+        "nodeName": "日志4",
+        "config": {
+          "level": "INFO",
+          "message": "fourth",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "fourth"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_1",
+        "sourceNodeId": "node_log_1",
+        "targetNodeId": "node_log_2",
+        "branchKey": "default"
+      },
+      {
+        "edgeId": "edge_2",
+        "sourceNodeId": "node_log_3",
+        "targetNodeId": "node_log_4",
+        "branchKey": "default"
+      },
+      {
+        "edgeId": "edge_3",
+        "sourceNodeId": "node_log_4",
+        "targetNodeId": "node_log_3",
+        "branchKey": "default"
+      }
+    ]
+  }
+}

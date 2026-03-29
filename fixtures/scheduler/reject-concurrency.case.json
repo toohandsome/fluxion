@@ -1,0 +1,15 @@
+{
+  "caseId": "scheduler/reject-concurrency",
+  "suite": "scheduler-integration",
+  "description": "FORBID 且已有活动实例时应拒绝触发。",
+  "schedule": {
+    "jobId": 7001,
+    "reentryPolicy": "FORBID",
+    "maxConcurrency": 1,
+    "waitTimeoutMs": 1000,
+    "activeInstances": 1
+  },
+  "expect": {
+    "dispatchCode": "REJECTED_CONCURRENCY"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "caseId": "engine/timeout-then-retry-success",
+  "suite": "engine-scenarios",
+  "description": "A timed-out HTTP attempt should retry once and eventually succeed.",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3004,
+    "flowVersionId": 4004,
+    "flowCode": "engine_timeout_then_retry_success",
+    "flowName": "Engine Timeout Then Retry Success",
+    "variables": [],
+    "flowOutputMapping": {
+      "stage": "${nodes.node_http_retry.output.stage}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_http_retry",
+        "nodeType": "http",
+        "nodeName": "Retrying HTTP",
+        "config": {
+          "resourceRef": "mock-http",
+          "method": "GET",
+          "path": "/retry",
+          "queryParams": [],
+          "headers": [],
+          "bodyType": "NONE",
+          "expectedStatus": 200
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "stage": "${raw.body.stage}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 100,
+          "retry": 1,
+          "retryIntervalMs": 10,
+          "logEnabled": true
+        },
+        "sideEffectPolicy": {
+          "type": "READ_ONLY"
+        }
+      },
+      {
+        "nodeId": "node_log_after",
+        "nodeType": "log",
+        "nodeName": "After retry",
+        "config": {
+          "level": "INFO",
+          "message": "after retry",
+          "loggerName": "fluxion.engine",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "done": true
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_http_after",
+        "sourceNodeId": "node_http_retry",
+        "targetNodeId": "node_log_after",
+        "branchKey": "default"
+      }
+    ]
+  },
+  "resources": {
+    "http": {
+      "node_http_retry": {
+        "attempts": [
+          {
+            "status": 200,
+            "delayMs": 180,
+            "body": {
+              "stage": "slow"
+            }
+          },
+          {
+            "status": 200,
+            "delayMs": 20,
+            "body": {
+              "stage": "fast"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "flowOutput": {
+      "stage": "fast"
+    },
+    "nodeStatuses": {
+      "node_http_retry": "SUCCESS",
+      "node_log_after": "SUCCESS"
+    },
+    "attemptCounts": {
+      "node_http_retry": 2,
+      "node_log_after": 1
+    },
+    "attemptDetails": {
+      "node_http_retry": [
+        {
+          "attempt": 1,
+          "status": "FAILED",
+          "errorCode": "NODE_TIMEOUT",
+          "durationMs": 180
+        },
+        {
+          "attempt": 2,
+          "status": "SUCCESS",
+          "durationMs": 20
+        }
+      ],
+      "node_log_after": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#6.2-超时语义",
+    "docs/phase-1/runtime-semantics.md#6.3-重试语义"
+  ]
+}

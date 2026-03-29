@@ -1,0 +1,62 @@
+{
+  "caseId": "engine/flow-output-eval-failed",
+  "suite": "engine-scenarios",
+  "description": "Flow output mapping evaluation failure should fail the instance after all nodes succeed.",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3007,
+    "flowVersionId": 4007,
+    "flowCode": "engine_flow_output_eval_failed",
+    "flowName": "Engine Flow Output Eval Failed",
+    "variables": [],
+    "flowOutputMapping": {
+      "result": "${1 / 0}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_ok",
+        "nodeType": "log",
+        "nodeName": "Successful node",
+        "config": {
+          "level": "INFO",
+          "message": "all good",
+          "loggerName": "fluxion.engine",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "done": true
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "expect": {
+    "instanceStatus": "FAILED",
+    "errorCode": "FLOW_OUTPUT_EVAL_FAILED",
+    "nodeStatuses": {
+      "node_log_ok": "SUCCESS"
+    },
+    "attemptCounts": {
+      "node_log_ok": 1
+    },
+    "attemptDetails": {
+      "node_log_ok": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#4.5-流程最终输出",
+    "docs/phase-1/runtime-semantics.md#7.1-失败传播"
+  ]
+}

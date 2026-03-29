@@ -1,0 +1,43 @@
+{
+  "caseId": "modeler/invalid/missing-flow-output",
+  "suite": "contracts",
+  "kind": "invalid",
+  "description": "缺少 flowOutputMapping，发布编译阶段应直接失败。",
+  "expect": {
+    "primaryErrorCode": "FLOW_OUTPUT_MAPPING_MISSING",
+    "stage": "MODEL_COMPILE"
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 1002,
+    "flowVersionId": 2002,
+    "flowCode": "demo_missing_output",
+    "flowName": "Demo Missing Output",
+    "variables": [],
+    "flowOutputMapping": {},
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "记录日志",
+        "config": {
+          "level": "INFO",
+          "message": "hello fluxion",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "hello fluxion"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  }
+}

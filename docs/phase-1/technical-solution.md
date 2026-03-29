@@ -84,7 +84,7 @@
 3. 任务并发、等待超时、错失策略通过任务表字段配置，其中 `waitTimeoutMs` 表示调度侧等待实例进入终态的最长时间。
 4. 调度触发流水拆分为 `dispatchStatus`、`waitStatus`、`instanceStatusSnapshot` 三层内部状态，对外列表默认只展示 `summaryStatus`。
 5. `CATCH_UP_BOUNDED` 为一期唯一推荐的补跑追赶策略，默认采用“最近 1 小时、最多 10 次、最老优先”。
-6. 一期提供 open、AppKey、Bearer Token、basic auth 四种基础认证方式进行配置。（一期只实现open 与 basic auth；AppKey、Bearer Token为预留后期实现）
+6. 一期入站认证只实现 `OPEN` 和 `BASIC_AUTH` 两种方式；数据库枚举统一为 `0-OPEN, 1-BASIC_AUTH`。
 
 ### 4.4 数据库与资源
 
@@ -121,7 +121,7 @@
    - 逐个弹出节点并削减其下游入度；
    - 若最终输出节点数小于总节点数，则判定图中存在环。
 4. DAG 检测、拓扑排序和起始节点识别以同一套入度计算结果为准，不额外要求引入 Tarjan 等强连通分量算法。
-5. `orderedNodeIds`、`levelGroups`、`startNodeIds`、`terminalNodeIds` 均应由上述编译结果一次性生成。
+5. 编译阶段可一次性生成 `orderedNodeIds`、起始节点集、结束节点集等派生视图用于校验与 diagnostics，但不要求全部持久化进入正式 `model_json`；引擎装载时可再次派生这些运行视图。
 
 ### 5.2 执行语义
 
@@ -251,109 +251,15 @@ fluxion-parent/
 5. 表达式编辑器在保存前提供静态校验与预览提示，但最终发布校验仍以后端编译结果为准。
 6. 调度触发流水列表默认只展示 `summaryStatus`，对外 UI 不直接暴露全部内部状态；详情页或详情抽屉再展开 `dispatchStatus`、`waitStatus`、`instanceStatusSnapshot`。
 
-### 7.3 接口清单
+### 7.3 Admin API 索引
 
-前端最小页面建议对应以下后端接口组。
+前端最小页面对应的正式管理端接口，以 [admin-api-contract.md](./admin-api-contract.md) 总入口及其分文档为准。
 
-#### 7.3.1 流程定义与版本接口
+本节只保留索引，不再重复维护 `/admin/*` 的路径、请求体、响应体和字段级联调语义：
 
-1. `GET /admin/flows`
-   查询流程列表。
-2. `POST /admin/flows`
-   创建流程定义。
-3. `GET /admin/flows/{flowId}`
-   查询流程定义详情。
-4. `PUT /admin/flows/{flowId}`
-   更新流程基础信息。
-5. `DELETE /admin/flows/{flowId}`
-   删除流程定义。
-6. `GET /admin/flows/{flowId}/draft`
-   查询当前草稿。
-7. `PUT /admin/flows/{flowId}/draft`
-   保存当前草稿内容。
-8. `POST /admin/flows/{flowId}/validate`
-   对当前草稿执行模型校验。
-9. `POST /admin/flows/{flowId}/publish`
-   发布流程版本。
-10. `GET /admin/flows/{flowId}/versions`
-    查询正式版本列表。
-11. `GET /admin/flows/{flowId}/versions/{versionId}`
-    查询指定正式版本详情。
-
-#### 7.3.2 流程实例与执行记录接口
-
-1. `GET /admin/instances`
-   查询流程实例列表。
-2. `GET /admin/instances/{instanceId}`
-   查询流程实例详情。
-3. `GET /admin/instances/{instanceId}/executions`
-   查询节点执行记录列表。
-4. `GET /admin/executions/{executionId}`
-   查询节点执行详情。
-5. `GET /admin/executions/{executionId}/attempts`
-   查询节点重试尝试明细。
-
-#### 7.3.3 资源管理接口
-
-1. `GET /admin/resources`
-   查询资源列表。
-2. `POST /admin/resources`
-   创建资源。
-3. `GET /admin/resources/{resourceId}`
-   查询资源详情。
-4. `PUT /admin/resources/{resourceId}`
-   更新资源。
-5. `DELETE /admin/resources/{resourceId}`
-   删除资源。
-6. `POST /admin/resources/{resourceId}/test`
-   测试资源连通性。
-
-#### 7.3.4 认证凭证管理接口
-
-1. `GET /admin/auth-credentials`
-   查询认证凭证列表。
-2. `POST /admin/auth-credentials`
-   创建认证凭证。
-3. `GET /admin/auth-credentials/{credentialId}`
-   查询认证凭证详情。
-4. `PUT /admin/auth-credentials/{credentialId}`
-   更新认证凭证。
-5. `POST /admin/auth-credentials/{credentialId}/disable`
-   禁用认证凭证。
-
-#### 7.3.5 HTTP 发布管理接口
-
-1. `GET /admin/endpoints`
-   查询已发布 HTTP 接口列表。
-2. `POST /admin/endpoints`
-   创建 HTTP 发布配置。
-3. `GET /admin/endpoints/{endpointId}`
-   查询 HTTP 发布配置详情。
-4. `PUT /admin/endpoints/{endpointId}`
-   更新 HTTP 发布配置。
-5. `POST /admin/endpoints/{endpointId}/online`
-   上线接口。
-6. `POST /admin/endpoints/{endpointId}/offline`
-   下线接口。
-
-#### 7.3.6 定时任务管理接口
-
-1. `GET /admin/schedules`
-   查询定时任务列表。
-2. `POST /admin/schedules`
-   创建定时任务。
-3. `GET /admin/schedules/{jobId}`
-   查询定时任务详情。
-4. `PUT /admin/schedules/{jobId}`
-   更新定时任务。
-5. `POST /admin/schedules/{jobId}/pause`
-   暂停任务。
-6. `POST /admin/schedules/{jobId}/resume`
-   恢复任务。
-7. `GET /admin/schedules/{jobId}/triggers`
-   查询触发流水。
-8. `GET /admin/schedules/{jobId}/triggers/{triggerId}`
-   查询单条触发流水详情。
+1. 流程定义、草稿、版本、实例与执行记录：见 `admin-api/flows.md`
+2. 资源管理、认证凭证管理、HTTP 发布管理：见 `admin-api/resources.md`
+3. 调度任务与触发流水管理：见 `admin-api/schedules.md`
 
 ### 7.4 前后端协作约定
 
@@ -364,160 +270,53 @@ fluxion-parent/
 5. 一期前端只依赖稳定的 Admin API，不直接访问底层运行时模块。
 6. 表达式补全、节点引用选择器和默认模板由“稳定命名空间定义 + 当前草稿拓扑 + 节点类型默认模板”共同驱动，一期允许前端本地实现，不强依赖额外后端接口。
 
-### 7.5 页面与接口映射表
+### 7.5 页面与接口索引表
 
-| 页面 | 主要接口 |
+| 页面 | 主要 Admin API 分组 |
 | --- | --- |
-| 流程列表页 | `GET /admin/flows` `POST /admin/flows` `DELETE /admin/flows/{flowId}` |
-| 流程编辑页 | `GET /admin/flows/{flowId}` `GET /admin/flows/{flowId}/draft` `PUT /admin/flows/{flowId}/draft` |
-| 发布面板 | `POST /admin/flows/{flowId}/validate` `POST /admin/flows/{flowId}/publish` `GET /admin/flows/{flowId}/versions` |
-| 流程实例列表页 | `GET /admin/instances` `GET /admin/instances/{instanceId}` |
-| 节点执行详情页 | `GET /admin/instances/{instanceId}/executions` `GET /admin/executions/{executionId}` `GET /admin/executions/{executionId}/attempts` |
-| 资源管理页 | `GET /admin/resources` `POST /admin/resources` `PUT /admin/resources/{resourceId}` `POST /admin/resources/{resourceId}/test` |
-| HTTP 发布管理页 | `GET /admin/endpoints` `POST /admin/endpoints` `PUT /admin/endpoints/{endpointId}` `POST /admin/endpoints/{endpointId}/online` |
-| 定时任务管理页 | `GET /admin/schedules` `POST /admin/schedules` `PUT /admin/schedules/{jobId}` `POST /admin/schedules/{jobId}/pause` `POST /admin/schedules/{jobId}/resume` `GET /admin/schedules/{jobId}/triggers` `GET /admin/schedules/{jobId}/triggers/{triggerId}` |
+| 流程列表页 | 流程定义接口组 |
+| 流程编辑页 | 流程定义接口组 + 草稿接口组 |
+| 发布面板 | 校验 / 发布 / 版本接口组 |
+| 流程实例列表页 | 实例接口组 |
+| 节点执行详情页 | 执行记录与 attempt 接口组 |
+| 资源管理页 | 资源接口组 |
+| HTTP 发布管理页 | HTTP 端点接口组 |
+| 定时任务管理页 | 调度任务与触发流水接口组 |
 
-### 7.6 请求与响应草案
+### 7.6 契约入口
 
-本节仅保留联调视角下的摘要信息，不再在 `technical-solution.md` 中重复维护字段级请求体、响应体和错误对象定义。
+本节不再维护 Admin API 的联调摘要、字段级请求体或返回体。
 
 正式协议请分别以下列文档为准：
 
 1. 统一响应结构、HTTP `200` 约定、默认时区：见 [../base.md](../base.md)
-2. HTTP 发布请求 / 响应映射、默认成功返回结构：见 [http-endpoint-contract.md](./http-endpoint-contract.md)
-3. 调度任务配置、`timezone`、`misfirePolicy`、触发流水结构：见 [schedule-contract.md](./schedule-contract.md)
-4. 资源管理与测试接口：见 [resource-contract.md](./resource-contract.md)
-5. 认证凭证接口：见 [auth-credential-contract.md](./auth-credential-contract.md)
-6. 流程发布校验错误对象与 `model_json` 编译错误归类：见 [model-json-contract.md](./model-json-contract.md) 与 [error-codes.md](./error-codes.md)
+2. 管理端接口路径、分页、并发控制和对象边界：见 [admin-api-contract.md](./admin-api-contract.md) 与 `admin-api/*`
+3. HTTP 发布请求 / 响应映射、默认成功返回结构：见 [http-endpoint-contract.md](./http-endpoint-contract.md)
+4. 调度任务配置、`timezone`、`misfirePolicy`、触发流水结构：见 [schedule-contract.md](./schedule-contract.md)
+5. 资源管理接口入口：见 `admin-api/resources.md`；资源对象结构与测试语义：见 [resource-contract.md](./resource-contract.md)
+6. 认证凭证管理接口入口：见 `admin-api/resources.md`；凭证对象结构：见 [auth-credential-contract.md](./auth-credential-contract.md)
+7. 流程发布校验错误对象与 `model_json` 编译错误归类：见 [model-json-contract.md](./model-json-contract.md) 与 [error-codes.md](./error-codes.md)
 
-前端页面与接口关系以本文件 `7.3 接口清单`、`7.5 页面与接口映射表` 为摘要入口；若后续新增正式 Admin API 契约文档，应以新契约文档替代此处的联调说明。
+前端页面与接口关系只以本文件 `7.3`、`7.5` 作为索引入口；任何 `/admin/*` 字段级协议以 `admin-api-contract.md` 总入口及 `admin-api/*` 分文档为准。
 
-### 7.7 画布 JSON 最小协议定义
+### 7.7 画布 JSON 摘要
 
-一期画布 JSON 建议采用如下最小结构：
+一期 `graph_json` 的正式契约以 [graph-json-contract.md](./graph-json-contract.md) 为准。
 
-```json
-{
-  "dslVersion": "1.0",
-  "flow": {
-    "flowCode": "user_sync",
-    "flowName": "用户同步",
-    "description": "同步外部用户数据",
-    "category": "integration",
-    "outputMapping": {
-      "result": "${vars.userId}"
-    }
-  },
-  "variables": [
-    {
-      "name": "userId",
-      "type": "string",
-      "defaultValue": null
-    }
-  ],
-  "nodes": [],
-  "edges": []
-}
-```
+本文件只保留以下设计摘要：
 
-#### 7.7.1 节点对象
+1. `graph_json` 是设计态草稿模型，保存到 `flx_flow_draft.graph_json`；它不是引擎可执行模型。
+2. `graph_json` 至少包含流程基础信息、变量定义、节点列表、连线列表以及设计态展示信息（如 `position`）。
+3. 节点 `config` 字段结构、`inputMapping` / `outputMapping` 的表达式边界，以 [node-schemas.md](./node-schemas.md) 为准。
+4. 资源型节点中的 `resourceRef` 一期正式含义固定为 `resourceCode`，不写入数据库主键。
+5. 发布时后端基于 `graph_json` 做结构校验、表达式校验与默认值归一化，并编译生成 `model_json`。
+6. 设计态 `flow.outputMapping` 是流程最终输出的唯一来源，发布后编译为运行态 `flowOutputMapping`。
 
-节点最小字段建议：
+### 7.8 Admin API 摘要入口
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `nodeId` | string | 是 | 画布内唯一标识 |
-| `nodeType` | string | 是 | 节点类型，如 `http`、`dbQuery` |
-| `nodeName` | string | 是 | 节点显示名称 |
-| `position` | object | 是 | 节点画布坐标 |
-| `config` | object | 是 | 节点配置 |
-| `inputMapping` | object | 否 | 当前节点执行输入映射，表达式可访问 `request` / `schedule` / `vars` / `instance` / `nodes` |
-| `outputMapping` | object | 否 | 当前节点稳定输出映射，表达式可访问稳定命名空间加当前节点局部 `raw` |
+一期 Admin API 的正式契约以 [admin-api-contract.md](./admin-api-contract.md) 总入口及 `admin-api/*` 分文档为准。本文件只保留页面关系、模块边界和文档索引，不再维护 `/admin/*` 的联调细节。
 
-节点示例：
-
-```json
-{
-  "nodeId": "node_http_1",
-  "nodeType": "http",
-  "nodeName": "查询用户接口",
-  "position": {
-    "x": 240,
-    "y": 120
-  },
-  "config": {
-    "resourceRef": "user_service",
-    "path": "/users/{id}",
-    "method": "GET"
-  },
-  "inputMapping": {
-    "path.id": "${vars.userId}"
-  },
-  "outputMapping": {
-    "statusCode": "${raw.statusCode}",
-    "body": "${raw.body}"
-  }
-}
-```
-
-#### 7.7.2 连线对象
-
-连线最小字段建议：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `edgeId` | string | 是 | 连线唯一标识 |
-| `sourceNodeId` | string | 是 | 起始节点 |
-| `sourcePort` | string | 否 | 起始端口 |
-| `targetNodeId` | string | 是 | 目标节点 |
-| `targetPort` | string | 否 | 目标端口 |
-| `condition` | object | 否 | 分支条件，仅条件节点输出边使用 |
-
-连线示例：
-
-```json
-{
-  "edgeId": "edge_1",
-  "sourceNodeId": "node_condition_1",
-  "sourcePort": "true",
-  "targetNodeId": "node_http_1",
-  "targetPort": "in"
-}
-```
-
-#### 7.7.3 编译约定
-
-1. `graph_json` 由前端保存到草稿，面向设计态。
-2. `model_json` 由后端在发布时编译生成，面向运行态。
-3. 正式 `version_num` 只在发布成功时分配，草稿阶段不占号。
-4. 编译时会补齐拓扑顺序、节点依赖关系、运行时策略快照。
-5. 一期禁止前端直接提交 `model_json`。
-6. 发布时必须将设计态 `flow.outputMapping` 编译为运行态 `flowOutputMapping`。
-7. 节点 `outputMapping` 的产物是当前节点稳定输出，不直接写入 `vars`；共享变量写入通过显式 `variable` 节点完成。
-
-#### 7.7.4 流程最终输出定义
-
-设计态在 `flow.outputMapping` 中显式定义流程最终输出。例如：
-
-```json
-{
-  "result": "${nodes.node_http_1.output.body}",
-  "traceId": "${instance.traceId}"
-}
-```
-
-规则如下：
-
-1. `flow.outputMapping` 是流程最终输出的唯一正式来源。
-2. `flow.outputMapping` 表达式只能访问 `request`、`schedule`、`vars`、`instance`、`nodes`。
-3. `flow.outputMapping` 在草稿阶段可为空，但发布时必须补齐。
-4. 运行时实例成功结束后，`flow.outputMapping` 的求值结果写入实例最终输出。
-
-### 7.8 Admin API 契约草案
-
-本节不再重复维护字段级 Admin API 协议。当前联调入口以 `7.3 接口清单` 和 `7.5 页面与接口映射表` 为摘要索引；若后续新增正式 `admin-api-contract.md`，则该文档成为唯一事实源。
-
-### 7.9 Runtime API 契约草案
+### 7.9 Runtime API 摘要入口
 
 本节仅保留运行时接口的设计意图，不再重复维护请求体、响应体和错误示例。
 
@@ -530,10 +329,11 @@ fluxion-parent/
 当前技术决策仅保留以下摘要：
 
 1. 运行时路径由已上线端点的 `path + method` 动态决定。
-2. 同步模式未配置 `successDataMapping` 时，默认在统一响应包 `data` 中返回 `instanceId`、`status`、`result`。
-3. 异步模式未配置 `runningDataMapping` 时，默认在统一响应包 `data` 中返回 `instanceId`、`status`、`queryUrl`。
-4. 结果查询接口固定为 `GET /runtime/instances/{instanceId}/result`。
-5. 流程失败摘要优先读取实例主表中的 `error_code`、`error_message`；详细错误上下文读取 `error_detail`。
+2. 已匹配到的运行时 HTTP 发布端点允许通过 `responseConfig.envelopeMode = CUSTOM_JSON` 自定义整个 JSON envelope。
+3. 当 `responseConfig.envelopeMode` 未配置或为 `UNIFIED` 时，同步模式未配置 `successDataMapping` 则默认在统一响应包 `data` 中返回 `instanceId`、`status`、`result`。
+4. 当 `responseConfig.envelopeMode` 未配置或为 `UNIFIED` 时，异步模式未配置 `runningDataMapping` 则默认在统一响应包 `data` 中返回 `instanceId`、`status`、`queryUrl`。
+5. 结果查询接口固定为 `GET /runtime/instances/{instanceId}/result`。
+6. 流程失败摘要优先读取实例主表中的 `error_code`、`error_message`；详细错误上下文读取 `error_detail`。
 
 ### 7.10 节点参数 Schema 规范
 
@@ -559,7 +359,7 @@ fluxion-parent/
 
 1. `model_json` 是发布后生成的不可变运行时快照，引擎只消费该模型执行。
 2. `model_json` 必须可独立执行，不依赖前端画布坐标、样式或其他展示态信息。
-3. 编译阶段负责补齐拓扑、上下游关系、运行策略快照、资源引用快照和已归一化节点参数。
+3. 编译阶段负责固化 canonical 节点/边、运行策略快照、资源引用快照和已归一化节点参数；起始节点、结束节点、上下游关系和拓扑顺序属于装载时可派生视图。
 4. 结构校验与语义校验采用“两层契约”模式：JSON Schema 负责结构，编译器负责 DAG、拓扑、引用和表达式作用域。
 
 ### 7.12 SQL 参数规范

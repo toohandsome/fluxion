@@ -1,0 +1,104 @@
+{
+  "caseId": "engine/http-fail-fast",
+  "suite": "engine-scenarios",
+  "description": "HTTP 节点失败后流程应 fail-fast，后续节点不再执行。",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3002,
+    "flowVersionId": 4002,
+    "flowCode": "engine_http_fail_fast",
+    "flowName": "Engine Http Fail Fast",
+    "variables": [],
+    "flowOutputMapping": {
+      "result": "${nodes.node_log_after.output}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_http_1",
+        "nodeType": "http",
+        "nodeName": "调用下游",
+        "config": {
+          "resourceRef": "mock-http",
+          "method": "GET",
+          "path": "/demo",
+          "queryParams": [],
+          "headers": [],
+          "bodyType": "NONE",
+          "expectedStatus": 200
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "body": "${raw.body}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        },
+        "sideEffectPolicy": {
+          "type": "READ_ONLY"
+        }
+      },
+      {
+        "nodeId": "node_log_after",
+        "nodeType": "log",
+        "nodeName": "后续日志",
+        "config": {
+          "level": "INFO",
+          "message": "after http",
+          "loggerName": "fluxion.engine",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "done": true
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_http_after",
+        "sourceNodeId": "node_http_1",
+        "targetNodeId": "node_log_after",
+        "branchKey": "default"
+      }
+    ]
+  },
+  "resources": {
+    "http": {
+      "node_http_1": {
+        "status": 500,
+        "errorMessage": "downstream error"
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "FAILED",
+    "errorCode": "HTTP_CALL_FAILED",
+    "nodeStatuses": {
+      "node_http_1": "FAILED"
+    },
+    "missingNodes": [
+      "node_log_after"
+    ],
+    "attemptDetails": {
+      "node_http_1": [
+        {
+          "attempt": 1,
+          "status": "FAILED",
+          "errorCode": "HTTP_CALL_FAILED"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#7.1-失败传播"
+  ]
+}

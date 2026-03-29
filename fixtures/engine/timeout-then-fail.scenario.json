@@ -1,0 +1,132 @@
+{
+  "caseId": "engine/timeout-then-fail",
+  "suite": "engine-scenarios",
+  "description": "A node should fail with NODE_TIMEOUT after retries are exhausted.",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3005,
+    "flowVersionId": 4005,
+    "flowCode": "engine_timeout_then_fail",
+    "flowName": "Engine Timeout Then Fail",
+    "variables": [],
+    "flowOutputMapping": {
+      "done": "${nodes.node_log_after.output.done}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_http_timeout",
+        "nodeType": "http",
+        "nodeName": "Timeout HTTP",
+        "config": {
+          "resourceRef": "mock-http",
+          "method": "GET",
+          "path": "/timeout",
+          "queryParams": [],
+          "headers": [],
+          "bodyType": "NONE",
+          "expectedStatus": 200
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "stage": "${raw.body.stage}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 100,
+          "retry": 1,
+          "retryIntervalMs": 10,
+          "logEnabled": true
+        },
+        "sideEffectPolicy": {
+          "type": "READ_ONLY"
+        }
+      },
+      {
+        "nodeId": "node_log_after",
+        "nodeType": "log",
+        "nodeName": "After timeout",
+        "config": {
+          "level": "INFO",
+          "message": "after timeout",
+          "loggerName": "fluxion.engine",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "done": true
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_http_after",
+        "sourceNodeId": "node_http_timeout",
+        "targetNodeId": "node_log_after",
+        "branchKey": "default"
+      }
+    ]
+  },
+  "resources": {
+    "http": {
+      "node_http_timeout": {
+        "attempts": [
+          {
+            "status": 200,
+            "delayMs": 180,
+            "body": {
+              "stage": "too-slow-1"
+            }
+          },
+          {
+            "status": 200,
+            "delayMs": 160,
+            "body": {
+              "stage": "too-slow-2"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "FAILED",
+    "errorCode": "NODE_TIMEOUT",
+    "nodeStatuses": {
+      "node_http_timeout": "FAILED"
+    },
+    "nodeErrorCodes": {
+      "node_http_timeout": "NODE_TIMEOUT"
+    },
+    "attemptCounts": {
+      "node_http_timeout": 2
+    },
+    "missingNodes": [
+      "node_log_after"
+    ],
+    "attemptDetails": {
+      "node_http_timeout": [
+        {
+          "attempt": 1,
+          "status": "FAILED",
+          "errorCode": "NODE_TIMEOUT",
+          "durationMs": 180
+        },
+        {
+          "attempt": 2,
+          "status": "FAILED",
+          "errorCode": "NODE_TIMEOUT",
+          "durationMs": 160
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#6.2-超时语义",
+    "docs/phase-1/runtime-semantics.md#7.1-失败传播"
+  ]
+}

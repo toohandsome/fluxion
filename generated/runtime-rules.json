@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "generatedFrom": "docs/phase-1/runtime-semantics.md",
+  "rules": [
+    {
+      "ruleId": "runtime.start-terminal",
+      "title": "起始节点与结束节点",
+      "summary": "入度为 0 的节点是 start，出度为 0 的节点是 terminal。",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.1-起始节点与结束节点"
+      ]
+    },
+    {
+      "ruleId": "runtime.connectivity",
+      "title": "连通性约束",
+      "summary": "所有节点都必须可从 start 到达、能到达 terminal，且属于同一连通分量。",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.2-连通性约束"
+      ]
+    },
+    {
+      "ruleId": "runtime.condition-branch",
+      "title": "条件分支约束",
+      "summary": "condition 节点只允许 true/false 两个分支键。",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.3-条件节点约束"
+      ]
+    },
+    {
+      "ruleId": "runtime.flow-output",
+      "title": "流程最终输出",
+      "summary": "发布后的运行时模型必须包含 flowOutputMapping。",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#4.5-流程最终输出"
+      ]
+    }
+  ]
+}

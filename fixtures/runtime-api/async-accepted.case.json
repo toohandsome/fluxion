@@ -1,0 +1,80 @@
+{
+  "caseId": "runtime-api/async-accepted",
+  "suite": "runtime-api-integration",
+  "description": "异步触发先返回 ACCEPTED，再通过结果查询拿到最终结果。",
+  "endpoint": {
+    "path": "/runtime/openapi/user/async",
+    "method": "POST",
+    "syncMode": false,
+    "requestConfig": {
+      "pathParams": [],
+      "queryParams": [],
+      "headerParams": [],
+      "body": {
+        "mode": "JSON",
+        "required": true,
+        "schema": {
+          "required": [
+            "userName"
+          ]
+        }
+      }
+    },
+    "responseConfig": {
+      "runningDataMapping": {
+        "instanceId": "${instance.instanceId}",
+        "status": "${instance.status}",
+        "queryUrl": "/runtime/instances/${instance.instanceId}/result"
+      }
+    }
+  },
+  "request": {
+    "body": {
+      "userName": "bob"
+    }
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 5003,
+    "flowVersionId": 6003,
+    "flowCode": "runtime_api_async_success",
+    "flowName": "Runtime API Async Success",
+    "variables": [],
+    "flowOutputMapping": {
+      "userName": "${request.body.userName}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "记录请求",
+        "config": {
+          "level": "INFO",
+          "message": "runtime async",
+          "loggerName": "fluxion.runtime",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "runtime async"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "expect": {
+    "initialCode": "ACCEPTED",
+    "resultCode": "OK",
+    "resultData": {
+      "result": {
+        "userName": "bob"
+      }
+    }
+  }
+}

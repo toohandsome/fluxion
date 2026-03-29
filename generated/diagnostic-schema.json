@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fluxion.dev/schema/diagnostic-schema.json",
+  "title": "Fluxion Harness Diagnostics",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "diagnostics"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tool",
+          "suite",
+          "caseId",
+          "stage",
+          "severity",
+          "errorCode",
+          "message",
+          "ownerModule",
+          "fixHint",
+          "docRefs",
+          "suggestedCommand",
+          "candidateFiles",
+          "relatedFixture",
+          "sourcePath",
+          "lineHint"
+        ],
+        "properties": {
+          "tool": {
+            "type": "string"
+          },
+          "suite": {
+            "type": "string"
+          },
+          "caseId": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "ERROR",
+              "WARNING",
+              "INFO"
+            ]
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "ownerModule": {
+            "type": "string"
+          },
+          "module": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attemptSummary": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "fixHint": {
+            "type": "string"
+          },
+          "suggestedCommand": {
+            "type": "string"
+          },
+          "candidateFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedFixture": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourcePath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lineHint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "docRefs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

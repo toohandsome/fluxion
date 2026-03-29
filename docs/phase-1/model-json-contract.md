@@ -13,6 +13,7 @@
 相关文档：
 
 - 技术方案摘要：[technical-solution.md](./technical-solution.md)
+- 设计态草稿契约：[graph-json-contract.md](./graph-json-contract.md)
 - 运行语义：[runtime-semantics.md](./runtime-semantics.md)
 - 节点参数定义：[node-schemas.md](./node-schemas.md)
 - 结构校验 Schema：[model-json.schema.json](./model-json.schema.json)
@@ -48,24 +49,27 @@
 
 `JSON Schema` 负责以下内容：
 
-- 顶层结构存在且类型正确：`modelVersion`、`flowDefId`、`flowVersionId`、`flowCode`、`flowName`、`flowOutputMapping`、`startNodeIds`、`nodes`、`edges`、`topology`
-- `topology` 最小结构存在：`orderedNodeIds`、`levelGroups`、`terminalNodeIds`
-- 运行时节点公共字段存在：`nodeId`、`nodeType`、`nodeName`、`incomingNodeIds`、`outgoingNodeIds`、`config`、`inputMapping`、`outputMapping`、`runtimePolicy`
+- 顶层结构存在且类型正确：`modelVersion`、`flowDefId`、`flowVersionId`、`flowCode`、`flowName`、`variables`、`flowOutputMapping`、`nodes`、`edges`
+- 运行时节点公共字段存在：`nodeId`、`nodeType`、`nodeName`、`config`、`inputMapping`、`outputMapping`、`runtimePolicy`
+- 运行时变量定义字段存在且结构正确：`name`、`type`、`defaultValue`
 - `runtimePolicy` 已归一化为显式对象，至少包含 `timeoutMs`、`retry`、`retryIntervalMs`、`logEnabled`
 - `http` / `dbUpdate` 节点必须带 `sideEffectPolicy`
-- 资源型节点的 `config.resourceRef` 必须是字符串标识
+- 资源型节点的 `config.resourceRef` 必须是 `resourceCode`
 - 节点 `config` 必须满足对应节点类型的一期最小参数结构
 
 `JSON Schema` 不负责以下内容：
 
 - 图是否为 DAG
 - `nodeId` / `edgeId` 是否全局唯一
-- `startNodeIds` 是否等于真实入度为 `0` 的节点集合
-- `topology.orderedNodeIds` / `levelGroups` / `terminalNodeIds` 是否与真实图结构一致
 - `edges` 中引用的节点是否真实存在
 - `branchKey` 是否与源节点类型匹配
 - 表达式内容是否合法、是否只使用允许的稳定命名空间
 - `resourceRef` 是否能在资源体系中解析到真实资源
+
+补充约定：
+
+1. 起始节点、结束节点、上下游关系和拓扑顺序属于可推导运行视图，不再作为一期正式 `model_json` 的持久化必填字段。
+2. 引擎在装载 `model_json` 时可基于 `nodes + edges` 一次性构建这些派生视图。
 
 以上内容由第二层编译期语义校验负责。
 
@@ -84,10 +88,7 @@
 ### 5.2 引用规则
 
 1. `nodeId`、`edgeId` 必须全局唯一。
-2. `edges.sourceNodeId`、`edges.targetNodeId`、`startNodeIds`、`topology.*` 中出现的节点必须真实存在。
-3. `incomingNodeIds`、`outgoingNodeIds` 必须与 `edges` 计算结果一致。
-4. `topology.orderedNodeIds` 必须完整覆盖全部节点且满足拓扑顺序。
-5. `topology.levelGroups` 必须与 `orderedNodeIds` 覆盖同一集合。
+2. `edges.sourceNodeId`、`edges.targetNodeId` 中出现的节点必须真实存在。
 
 ### 5.3 分支规则
 
@@ -100,8 +101,18 @@
 1. `inputMapping`、`outputMapping`、`flowOutputMapping` 中的表达式只允许依赖稳定命名空间。
 2. 节点局部 `raw` 只允许在当前节点 `outputMapping` 中使用。
 3. `http` / `dbUpdate` 的副作用策略必须与节点类型匹配。
-4. `config.resourceRef` 必须能解析到合法资源。
+4. `config.resourceRef` 必须能按 `resourceCode` 解析到合法资源。
 5. 节点 `config` 必须是已校验通过、默认值已补齐、条件字段已裁剪后的结构。
+
+### 5.5 变量规则
+
+1. 发布后的 `model_json.variables` 必须显式包含流程级变量定义；即使流程未声明任何变量，也建议写成空数组而不是省略。
+2. `variables.name` 在同一流程内必须唯一，并遵循标识符规则 `^[A-Za-z_][A-Za-z0-9_]*$`。
+3. `variables.type` 一期固定为 `STRING` / `INT` / `LONG` / `DOUBLE` / `BOOLEAN` / `JSON`。
+4. `variables.defaultValue` 若存在，必须与声明 `type` 兼容；若缺失，则运行时按 `null` 初始化。
+5. `variable.config.targetVar` 必须能解析到 `variables.name` 中的正式声明。
+6. 表达式中出现的 `vars.<name>` 根变量名必须能解析到 `variables.name` 中的正式声明。
+7. 一期不支持 `vars[someExpr]` 这类动态 key 访问；编译期必须能解析出固定根变量名。
 
 ## 6. 一期运行时模型正式字段
 
@@ -114,20 +125,20 @@
 | `flowVersionId` | long | 是 | 流程版本 ID |
 | `flowCode` | string | 是 | 流程编码 |
 | `flowName` | string | 是 | 流程名称 |
+| `variables` | array | 是 | 编译后的流程级变量定义 |
 | `flowOutputMapping` | object | 是 | 编译后的流程最终输出映射 |
-| `startNodeIds` | array | 是 | 起始节点 ID 列表 |
 | `nodes` | array | 是 | 编译后的运行时节点列表 |
 | `edges` | array | 是 | 编译后的运行时边列表 |
-| `topology` | object | 是 | 拓扑与调度辅助信息 |
 | `extensions` | object | 否 | 扩展保留区 |
 
-### 6.2 `topology` 字段
+### 6.2 变量定义字段
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `orderedNodeIds` | array | 是 | 全流程拓扑排序结果 |
-| `levelGroups` | array | 是 | 可并行执行层级分组 |
-| `terminalNodeIds` | array | 是 | 编译后识别出的结束节点 |
+| `name` | string | 是 | 变量名 |
+| `type` | string | 是 | 变量类型：`STRING` / `INT` / `LONG` / `DOUBLE` / `BOOLEAN` / `JSON` |
+| `defaultValue` | any | 否 | 运行时初始值；缺失表示初始化为 `null` |
+| `description` | string | 否 | 变量说明 |
 | `extensions` | object | 否 | 扩展保留区 |
 
 ### 6.3 节点公共字段
@@ -137,8 +148,6 @@
 | `nodeId` | string | 是 | 节点 ID |
 | `nodeType` | string | 是 | 节点类型 |
 | `nodeName` | string | 是 | 节点名称 |
-| `incomingNodeIds` | array | 是 | 上游节点快照 |
-| `outgoingNodeIds` | array | 是 | 下游节点快照 |
 | `config` | object | 是 | 已校验、已归一化的节点参数结构 |
 | `inputMapping` | object | 是 | 输入映射；建议发布后补齐为空对象而非省略 |
 | `outputMapping` | object | 是 | 输出映射；建议发布后补齐为空对象而非省略 |
@@ -162,14 +171,15 @@
 
 | 要求 | 在 `model_json` 中的体现 |
 | --- | --- |
-| 1. 节点的上下游关系 | 节点上的 `incomingNodeIds`、`outgoingNodeIds` |
-| 2. 拓扑排序结果 | 顶层 `topology.orderedNodeIds`、`topology.levelGroups`、`topology.terminalNodeIds` |
+| 1. 已编译的流程级变量定义 | 顶层 `variables` |
+| 2. 规范化后的节点与连线 | 顶层 `nodes`、`edges` |
 | 3. 已归一化的运行时策略 | 节点上的 `runtimePolicy` |
-| 4. 已固定的资源引用标识 | 资源型节点 `config.resourceRef` |
+| 4. 已固定的资源引用标识 | 资源型节点 `config.resourceRef`（一期固定为 `resourceCode`） |
 | 5. 已校验通过的参数结构 | 节点上的 `config`，即发布编译后的运行态参数快照 |
 
 说明：
 
+- 起始节点、结束节点、上下游关系和拓扑顺序属于装载时可派生视图，不再要求作为一期正式持久化字段重复写入。
 - 第 5 点不要求额外引入 `validated = true` 一类冗余标记；节点 `config` 本身就是已校验通过的编译结果。
 - 若后续需要记录更多编译元数据，优先放入 `extensions`，避免污染一期最小执行契约。
 

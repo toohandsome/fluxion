@@ -1,0 +1,93 @@
+{
+  "caseId": "engine/db-seeded-query-flow-expression",
+  "suite": "engine-scenarios",
+  "description": "Seeded rows should be queryable from Java in-memory DB and flow output expressions should support arithmetic/comparison/template interpolation.",
+  "resources": {
+    "dbSchemas": {
+      "app-db": "create table demo_users (id integer primary key autoincrement, name text not null, age integer not null);"
+    },
+    "dbSeeds": {
+      "app-db": "insert into demo_users(name, age) values ('seeded-user', 18), ('other-user', 12);"
+    }
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3008,
+    "flowVersionId": 4008,
+    "flowCode": "engine_db_seeded_query_flow_expression",
+    "flowName": "Engine DB Seeded Query Flow Expression",
+    "variables": [],
+    "flowOutputMapping": {
+      "name": "${nodes.node_db_query.output.name}",
+      "nextAge": "${nodes.node_db_query.output.age + 1}",
+      "adult": "${nodes.node_db_query.output.age >= 18}",
+      "summary": "user=${nodes.node_db_query.output.name}, age=${nodes.node_db_query.output.age}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_db_query",
+        "nodeType": "dbQuery",
+        "nodeName": "Query seeded user",
+        "config": {
+          "resourceRef": "app-db",
+          "sql": "select name, age from demo_users where name = :name",
+          "params": [
+            {
+              "key": "name",
+              "value": "${request.body.userName}"
+            }
+          ],
+          "resultMode": "ONE",
+          "fetchSize": 10
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "name": "${raw.name}",
+          "age": "${raw.age}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "trigger": {
+    "triggerType": "HTTP",
+    "request": {
+      "body": {
+        "userName": "seeded-user"
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "flowOutput": {
+      "name": "seeded-user",
+      "nextAge": 19,
+      "adult": true,
+      "summary": "user=seeded-user, age=18"
+    },
+    "nodeStatuses": {
+      "node_db_query": "SUCCESS"
+    },
+    "attemptCounts": {
+      "node_db_query": 1
+    },
+    "attemptDetails": {
+      "node_db_query": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#4.4-??????????",
+    "docs/phase-1/runtime-semantics.md#4.5-??????"
+  ]
+}

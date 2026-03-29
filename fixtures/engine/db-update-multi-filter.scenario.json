@@ -1,0 +1,145 @@
+{
+  "caseId": "engine/db-update-multi-filter",
+  "suite": "engine-scenarios",
+  "description": "dbUpdate should support update statements and dbQuery should support multi-condition where clauses.",
+  "resources": {
+    "dbSchemas": {
+      "app-db": "create table demo_users (id integer primary key autoincrement, name text not null, segment text not null, active integer not null);"
+    },
+    "dbSeeds": {
+      "app-db": "insert into demo_users(name, segment, active) values ('alice', 'vip', 0), ('alice', 'basic', 0);"
+    }
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3009,
+    "flowVersionId": 4009,
+    "flowCode": "engine_db_update_multi_filter",
+    "flowName": "Engine DB Update Multi Filter",
+    "variables": [],
+    "flowOutputMapping": {
+      "active": "${nodes.node_db_query.output.active}",
+      "segment": "${nodes.node_db_query.output.segment}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_db_update",
+        "nodeType": "dbUpdate",
+        "nodeName": "Update user segment row",
+        "config": {
+          "resourceRef": "app-db",
+          "sql": "update demo_users set active = :active where name = :name and segment = :segment",
+          "params": [
+            {
+              "key": "active",
+              "value": "${request.body.active}"
+            },
+            {
+              "key": "name",
+              "value": "${request.body.userName}"
+            },
+            {
+              "key": "segment",
+              "value": "${request.body.segment}"
+            }
+          ],
+          "returnGeneratedKeys": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "rowsAffected": "${raw.rowsAffected}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_db_query",
+        "nodeType": "dbQuery",
+        "nodeName": "Query updated row",
+        "config": {
+          "resourceRef": "app-db",
+          "sql": "select name, segment, active from demo_users where name = :name and segment = :segment",
+          "params": [
+            {
+              "key": "name",
+              "value": "${request.body.userName}"
+            },
+            {
+              "key": "segment",
+              "value": "${request.body.segment}"
+            }
+          ],
+          "resultMode": "ONE",
+          "fetchSize": 10
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "name": "${raw.name}",
+          "segment": "${raw.segment}",
+          "active": "${raw.active}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_db_update_query",
+        "sourceNodeId": "node_db_update",
+        "targetNodeId": "node_db_query",
+        "branchKey": "default"
+      }
+    ]
+  },
+  "trigger": {
+    "triggerType": "HTTP",
+    "request": {
+      "body": {
+        "userName": "alice",
+        "segment": "vip",
+        "active": 1
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "flowOutput": {
+      "active": 1,
+      "segment": "vip"
+    },
+    "nodeStatuses": {
+      "node_db_update": "SUCCESS",
+      "node_db_query": "SUCCESS"
+    },
+    "attemptCounts": {
+      "node_db_update": 1,
+      "node_db_query": 1
+    },
+    "attemptDetails": {
+      "node_db_update": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ],
+      "node_db_query": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#4.4-??????????",
+    "docs/phase-1/runtime-semantics.md#7.2-????"
+  ]
+}

@@ -331,7 +331,8 @@ CREATE TABLE flx_http_endpoint (
     rate_limit_config TEXT,
     timeout_ms INTEGER DEFAULT NULL,
     sync_mode SMALLINT NOT NULL DEFAULT 1,
-    status SMALLINT NOT NULL DEFAULT 1,
+    status SMALLINT NOT NULL DEFAULT 0,
+    disable_reason VARCHAR(64) DEFAULT NULL,
     create_time TIMESTAMP(3) NOT NULL,
     create_by VARCHAR(64) DEFAULT NULL,
     update_time TIMESTAMP(3) DEFAULT NULL,
@@ -350,14 +351,15 @@ COMMENT ON COLUMN flx_http_endpoint.version_policy IS '版本策略: 0-LATEST, 1
 COMMENT ON COLUMN flx_http_endpoint.fixed_version_id IS '固定版本ID, FIXED时必填';
 COMMENT ON COLUMN flx_http_endpoint.path IS '请求路径';
 COMMENT ON COLUMN flx_http_endpoint.method IS 'HTTP方法';
-COMMENT ON COLUMN flx_http_endpoint.auth_type IS '认证方式: 0-开放, 1-AppKey, 2-BearerToken,3-BasicAuth';
+COMMENT ON COLUMN flx_http_endpoint.auth_type IS '认证方式: 0-OPEN, 1-BASIC_AUTH';
 COMMENT ON COLUMN flx_http_endpoint.request_config IS '请求提取/校验/业务键配置(JSON)';
-COMMENT ON COLUMN flx_http_endpoint.response_type IS '响应格式';
-COMMENT ON COLUMN flx_http_endpoint.response_config IS '响应映射配置';
+COMMENT ON COLUMN flx_http_endpoint.response_type IS '响应格式, 一期固定为 JSON';
+COMMENT ON COLUMN flx_http_endpoint.response_config IS '运行时响应 envelope / body 映射配置(JSON)';
 COMMENT ON COLUMN flx_http_endpoint.rate_limit_config IS '接口限流配置(JSON)';
 COMMENT ON COLUMN flx_http_endpoint.timeout_ms IS '接口整体超时时间(毫秒)';
 COMMENT ON COLUMN flx_http_endpoint.sync_mode IS '0-异步, 1-同步';
-COMMENT ON COLUMN flx_http_endpoint.status IS '0-下线, 1-上线';
+COMMENT ON COLUMN flx_http_endpoint.status IS '0-下线, 1-上线, 2-禁用';
+COMMENT ON COLUMN flx_http_endpoint.disable_reason IS '禁用原因: ROUTE_CONFLICT';
 COMMENT ON COLUMN flx_http_endpoint.create_time IS '创建时间';
 COMMENT ON COLUMN flx_http_endpoint.create_by IS '创建人';
 COMMENT ON COLUMN flx_http_endpoint.update_time IS '更新时间';
@@ -406,7 +408,7 @@ COMMENT ON COLUMN flx_schedule_job.flow_def_id IS '触发流程定义ID';
 COMMENT ON COLUMN flx_schedule_job.version_policy IS '版本策略: 0-LATEST, 1-FIXED';
 COMMENT ON COLUMN flx_schedule_job.fixed_version_id IS '固定版本ID, FIXED时必填';
 COMMENT ON COLUMN flx_schedule_job.cron_expression IS 'Quartz Cron表达式';
-COMMENT ON COLUMN flx_schedule_job.timezone IS 'Cron时区';
+COMMENT ON COLUMN flx_schedule_job.timezone IS '一期固定为 Asia/Shanghai 的 Cron 时区快照；保留列不开放其他业务时区';
 COMMENT ON COLUMN flx_schedule_job.misfire_policy IS '错失策略: 1-立即补一次, 2-丢弃本次, 3-有界补跑';
 COMMENT ON COLUMN flx_schedule_job.catch_up_config IS '补跑边界配置(JSON), 如最近窗口、最大补跑次数、顺序';
 COMMENT ON COLUMN flx_schedule_job.job_params IS '任务静态参数(JSON)';
@@ -546,7 +548,7 @@ CREATE TABLE flx_auth_credential (
     tenant_id VARCHAR(64) NOT NULL DEFAULT 'default',
     credential_code VARCHAR(64) NOT NULL,
     credential_name VARCHAR(128) NOT NULL,
-    auth_type SMALLINT NOT NULL DEFAULT 3,
+    auth_type SMALLINT NOT NULL DEFAULT 0,
     config_json TEXT,
     description VARCHAR(500) DEFAULT NULL,
     status SMALLINT NOT NULL DEFAULT 1,
@@ -566,7 +568,7 @@ COMMENT ON COLUMN flx_auth_credential.id IS '主键';
 COMMENT ON COLUMN flx_auth_credential.tenant_id IS '租户ID';
 COMMENT ON COLUMN flx_auth_credential.credential_code IS '凭证业务编码';
 COMMENT ON COLUMN flx_auth_credential.credential_name IS '凭证名称';
-COMMENT ON COLUMN flx_auth_credential.auth_type IS '认证类型: 0-OPEN, 1-APP_KEY, 2-BEARER_TOKEN, 3-BASIC_AUTH';
+COMMENT ON COLUMN flx_auth_credential.auth_type IS '认证类型: 0-OPEN, 1-BASIC_AUTH';
 COMMENT ON COLUMN flx_auth_credential.config_json IS '非敏感配置(JSON)';
 COMMENT ON COLUMN flx_auth_credential.description IS '凭证描述';
 COMMENT ON COLUMN flx_auth_credential.status IS '状态: 0-禁用, 1-启用';
@@ -628,7 +630,6 @@ COMMENT ON COLUMN flx_operation_audit.tenant_id IS '租户ID';
 COMMENT ON COLUMN flx_operation_audit.operator_id IS '操作人ID';
 COMMENT ON COLUMN flx_operation_audit.operator_name IS '操作人名称';
 COMMENT ON COLUMN flx_operation_audit.operation_type IS '操作类型: CREATE, UPDATE, DELETE, PUBLISH, ENABLE, DISABLE';
-COMMENT ON COLUMN flx_operation_audit.target_type IS '目标类型: FLOW, VERSION, ENDPOINT, JOB, RESOURCE';
 COMMENT ON COLUMN flx_operation_audit.target_id IS '目标ID';
 COMMENT ON COLUMN flx_operation_audit.target_code IS '目标业务编码';
 COMMENT ON COLUMN flx_operation_audit.request_id IS '请求ID';
@@ -637,7 +638,6 @@ COMMENT ON COLUMN flx_operation_audit.operation_content IS '操作内容(JSON)';
 COMMENT ON COLUMN flx_operation_audit.result_status IS '结果: 0-失败, 1-成功';
 COMMENT ON COLUMN flx_operation_audit.error_message IS '失败原因摘要';
 COMMENT ON COLUMN flx_operation_audit.create_time IS '创建时间';
-
 COMMENT ON COLUMN flx_operation_audit.target_type IS 'Target type: FLOW, VERSION, ENDPOINT, JOB, RESOURCE, AUTH_CREDENTIAL';
 
 CREATE INDEX idx_flx_operation_audit_tenant_target_time ON flx_operation_audit(tenant_id, target_type, target_id, create_time);

@@ -1,0 +1,66 @@
+{
+  "caseId": "modeler/invalid/disconnected-subgraph",
+  "suite": "contracts",
+  "kind": "invalid",
+  "description": "存在独立子图，应命中 DISCONNECTED_SUBGRAPH。",
+  "expect": {
+    "primaryErrorCode": "DISCONNECTED_SUBGRAPH",
+    "stage": "STRUCTURE_VALIDATE"
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 1004,
+    "flowVersionId": 2004,
+    "flowCode": "demo_disconnected_subgraph",
+    "flowName": "Demo Disconnected Subgraph",
+    "variables": [],
+    "flowOutputMapping": {
+      "result": "${nodes.node_log_1.output}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "日志1",
+        "config": {
+          "level": "INFO",
+          "message": "first",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "first"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_2",
+        "nodeType": "log",
+        "nodeName": "日志2",
+        "config": {
+          "level": "INFO",
+          "message": "second",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "second"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  }
+}

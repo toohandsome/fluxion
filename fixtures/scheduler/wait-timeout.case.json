@@ -1,0 +1,20 @@
+{
+  "caseId": "scheduler/wait-timeout",
+  "suite": "scheduler-integration",
+  "description": "等待时间小于执行耗时时应返回 WAIT_TIMEOUT。",
+  "schedule": {
+    "jobId": 7002,
+    "reentryPolicy": "ALLOW",
+    "maxConcurrency": 2,
+    "waitTimeoutMs": 50,
+    "activeInstances": 0
+  },
+  "engineCase": {
+    "simulatedDurationMs": 120,
+    "finalStatus": "SUCCESS"
+  },
+  "expect": {
+    "dispatchCode": "WAIT_TIMEOUT",
+    "instanceStatusSnapshot": "RUNNING"
+  }
+}

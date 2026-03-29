@@ -1,0 +1,57 @@
+{
+  "caseId": "persistence/instance-and-node-records",
+  "suite": "persistence-integration",
+  "description": "执行成功后应把实例与节点记录写入 sqlite 持久化库。",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 8001,
+    "flowVersionId": 9001,
+    "flowCode": "persistence_success",
+    "flowName": "Persistence Success",
+    "variables": [],
+    "flowOutputMapping": {
+      "message": "${nodes.node_log_1.output.message}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "记录日志",
+        "config": {
+          "level": "INFO",
+          "message": "persist ok",
+          "loggerName": "fluxion.persistence",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "persist ok"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "nodeStatuses": {
+      "node_log_1": "SUCCESS"
+    },
+    "nodeAttemptCounts": {
+      "node_log_1": 1
+    },
+    "attempts": {
+      "node_log_1": [
+        {
+          "attempt_no": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  }
+}

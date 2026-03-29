@@ -1,0 +1,102 @@
+{
+  "caseId": "runtime-api/sync-success",
+  "suite": "runtime-api-integration",
+  "description": "同步 HTTP 触发成功，返回 successDataMapping。",
+  "endpoint": {
+    "path": "/runtime/openapi/user/sync",
+    "method": "POST",
+    "syncMode": true,
+    "requestConfig": {
+      "pathParams": [],
+      "queryParams": [
+        {
+          "name": "dryRun",
+          "type": "BOOLEAN",
+          "required": false,
+          "defaultValue": false
+        }
+      ],
+      "headerParams": [
+        {
+          "name": "X-Trace-Id",
+          "type": "STRING",
+          "required": false
+        }
+      ],
+      "body": {
+        "mode": "JSON",
+        "required": true,
+        "schema": {
+          "required": [
+            "userName"
+          ]
+        }
+      },
+      "businessKeyExpr": "${request.body.userName}"
+    },
+    "responseConfig": {
+      "successDataMapping": {
+        "instanceId": "${instance.instanceId}",
+        "status": "${instance.status}",
+        "result": "${flow.output}"
+      }
+    }
+  },
+  "request": {
+    "query": {
+      "dryRun": "false"
+    },
+    "headers": {
+      "X-Trace-Id": "trace-demo"
+    },
+    "body": {
+      "userName": "alice"
+    }
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 5001,
+    "flowVersionId": 6001,
+    "flowCode": "runtime_api_sync_success",
+    "flowName": "Runtime API Sync Success",
+    "variables": [],
+    "flowOutputMapping": {
+      "userName": "${request.body.userName}",
+      "businessKey": "${instance.businessKey}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "记录请求",
+        "config": {
+          "level": "INFO",
+          "message": "runtime ok",
+          "loggerName": "fluxion.runtime",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "runtime ok"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "expect": {
+    "initialCode": "OK",
+    "initialData": {
+      "status": "SUCCESS",
+      "result": {
+        "userName": "alice",
+        "businessKey": "alice"
+      }
+    }
+  }
+}

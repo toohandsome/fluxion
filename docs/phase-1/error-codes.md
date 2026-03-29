@@ -84,6 +84,9 @@
 | `NODE_SCHEMA_INVALID` | 节点参数结构不合法 |
 | `RESOURCE_REF_INVALID` | 资源引用非法 |
 | `FLOW_OUTPUT_MAPPING_MISSING` | 发布时缺少 `flowOutputMapping` |
+| `VARIABLE_NOT_DECLARED` | 变量未在流程级声明表中定义 |
+| `VARIABLE_DEFAULT_TYPE_MISMATCH` | 变量默认值与声明类型不匹配 |
+| `VARIABLE_DYNAMIC_ACCESS_NOT_ALLOWED` | 变量访问使用了不支持的动态 key 语法 |
 
 ### 7.2 表达式与执行
 
@@ -97,10 +100,11 @@
 | `HTTP_CALL_FAILED` | HTTP 节点调用失败 |
 | `DB_QUERY_FAILED` | 数据库查询节点失败 |
 | `DB_UPDATE_FAILED` | 数据库更新节点失败 |
+| `VARIABLE_ASSIGN_TYPE_MISMATCH` | 变量写入值与声明类型不兼容 |
 | `RESOURCE_DISABLED` | 运行时解析到禁用资源 |
 
 ## 8. 使用约定
 
-1. 一期对外接口统一返回 HTTP `200` 包装体，业务状态由 `code` 表示。
+1. 一期管理接口、运行时结果查询接口以及未启用自定义 envelope 的运行时 HTTP 响应，统一返回 HTTP `200` 包装体，业务状态由 `code` 表示。
 2. 节点执行表和 attempt 表中的 `error_code` 优先使用本文档中的 `ENGINE` / `SCHEDULER` 错误码。
 3. 同一失败场景若同时存在平台错误码与底层异常信息，平台错误码写入 `errorCode`，底层异常摘要写入 `errorMessage`，详细长文本或堆栈写入 `error_detail`。

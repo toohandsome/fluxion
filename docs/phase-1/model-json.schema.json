@@ -10,11 +10,10 @@
     "flowVersionId",
     "flowCode",
     "flowName",
+    "variables",
     "flowOutputMapping",
-    "startNodeIds",
     "nodes",
-    "edges",
-    "topology"
+    "edges"
   ],
   "properties": {
     "modelVersion": {
@@ -37,11 +36,14 @@
       "type": "string",
       "minLength": 1
     },
+    "variables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/variableDef"
+      }
+    },
     "flowOutputMapping": {
       "$ref": "#/$defs/mappingObject"
-    },
-    "startNodeIds": {
-      "$ref": "#/$defs/nodeIdArrayMin1"
     },
     "nodes": {
       "type": "array",
@@ -56,14 +58,11 @@
         "$ref": "#/$defs/runtimeEdge"
       }
     },
-    "topology": {
-      "$ref": "#/$defs/topology"
-    },
     "extensions": {
       "$ref": "#/$defs/extensionsObject"
     }
   },
-  "$comment": "DAG、唯一性、拓扑一致性、表达式语义、资源存在性由编译期语义校验负责。",
+  "$comment": "DAG、唯一性、引用一致性、表达式语义、资源存在性由编译期语义校验负责。",
   "$defs": {
     "extensionsObject": {
       "type": "object"
@@ -119,6 +118,43 @@
       "type": "object",
       "additionalProperties": {
         "$ref": "#/$defs/mappingValue"
+      }
+    },
+    "variableType": {
+      "type": "string",
+      "enum": [
+        "STRING",
+        "INT",
+        "LONG",
+        "DOUBLE",
+        "BOOLEAN",
+        "JSON"
+      ]
+    },
+    "variableDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "type": {
+          "$ref": "#/$defs/variableType"
+        },
+        "defaultValue": {
+          "$ref": "#/$defs/mappingValue"
+        },
+        "description": {
+          "type": "string"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensionsObject"
+        }
       }
     },
     "kvEntry": {
@@ -226,38 +262,6 @@
         }
       }
     },
-    "topology": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "orderedNodeIds",
-        "levelGroups",
-        "terminalNodeIds"
-      ],
-      "properties": {
-        "orderedNodeIds": {
-          "$ref": "#/$defs/nodeIdArrayMin1"
-        },
-        "levelGroups": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-              "$ref": "#/$defs/nodeId"
-            }
-          }
-        },
-        "terminalNodeIds": {
-          "$ref": "#/$defs/nodeIdArrayMin1"
-        },
-        "extensions": {
-          "$ref": "#/$defs/extensionsObject"
-        }
-      }
-    },
     "runtimeEdge": {
       "type": "object",
       "additionalProperties": false,
@@ -298,8 +302,6 @@
         "nodeId",
         "nodeType",
         "nodeName",
-        "incomingNodeIds",
-        "outgoingNodeIds",
         "config",
         "inputMapping",
         "outputMapping",
@@ -315,12 +317,6 @@
         "nodeName": {
           "type": "string",
           "minLength": 1
-        },
-        "incomingNodeIds": {
-          "$ref": "#/$defs/nodeIdArray"
-        },
-        "outgoingNodeIds": {
-          "$ref": "#/$defs/nodeIdArray"
         },
         "config": {
           "type": "object"

@@ -1,0 +1,103 @@
+{
+  "caseId": "engine/db-seed-update-or-in-order-limit",
+  "suite": "engine-scenarios",
+  "description": "db seed updates and dbQuery should support or/in/order by/limit with deterministic top-row selection.",
+  "resources": {
+    "dbSchemas": {
+      "app-db": "create table demo_users (id integer primary key autoincrement, name text not null, segment text not null, score integer not null, active integer not null);"
+    },
+    "dbSeeds": {
+      "app-db": "insert into demo_users(name, segment, score, active) values ('alice', 'vip', 80, 1), ('bob', 'basic', 95, 1), ('carol', 'vip', 90, 0), ('dave', 'pro', 70, 1); update demo_users set score = 100 where name = 'dave' or segment in ('vip');"
+    }
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3010,
+    "flowVersionId": 4010,
+    "flowCode": "engine_db_seed_update_or_in_order_limit",
+    "flowName": "Engine DB Seed Update OR IN ORDER LIMIT",
+    "variables": [],
+    "flowOutputMapping": {
+      "name": "${nodes.node_db_query.output.name}",
+      "segment": "${nodes.node_db_query.output.segment}",
+      "score": "${nodes.node_db_query.output.score}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_db_query",
+        "nodeType": "dbQuery",
+        "nodeName": "Query ranked user",
+        "config": {
+          "resourceRef": "app-db",
+          "sql": "select name, segment, score from demo_users where segment in (:segmentA, :segmentB) or name = :fallbackName order by score desc, name asc limit :take",
+          "params": [
+            {
+              "key": "segmentA",
+              "value": "${request.body.segmentA}"
+            },
+            {
+              "key": "segmentB",
+              "value": "${request.body.segmentB}"
+            },
+            {
+              "key": "fallbackName",
+              "value": "${request.body.fallbackName}"
+            },
+            {
+              "key": "take",
+              "value": "${request.body.take}"
+            }
+          ],
+          "resultMode": "ONE",
+          "fetchSize": 10
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "name": "${raw.name}",
+          "segment": "${raw.segment}",
+          "score": "${raw.score}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "trigger": {
+    "triggerType": "HTTP",
+    "request": {
+      "body": {
+        "segmentA": "vip",
+        "segmentB": "basic",
+        "fallbackName": "dave",
+        "take": 1
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "flowOutput": {
+      "name": "alice",
+      "segment": "vip",
+      "score": 100
+    },
+    "nodeStatuses": {
+      "node_db_query": "SUCCESS"
+    },
+    "attemptCounts": {
+      "node_db_query": 1
+    },
+    "attemptDetails": {
+      "node_db_query": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  }
+}

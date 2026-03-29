@@ -1,0 +1,20 @@
+{
+  "caseId": "scheduler/success",
+  "suite": "scheduler-integration",
+  "description": "调度触发成功并在等待期内结束。",
+  "schedule": {
+    "jobId": 7003,
+    "reentryPolicy": "ALLOW",
+    "maxConcurrency": 2,
+    "waitTimeoutMs": 500,
+    "activeInstances": 0
+  },
+  "engineCase": {
+    "simulatedDurationMs": 80,
+    "finalStatus": "SUCCESS"
+  },
+  "expect": {
+    "dispatchCode": "OK",
+    "instanceStatusSnapshot": "SUCCESS"
+  }
+}

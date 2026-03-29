@@ -1,0 +1,713 @@
+{
+  "version": "1.0",
+  "generatedFrom": "docs/phase-1/error-codes.md",
+  "entries": [
+    {
+      "errorCode": "OK",
+      "layer": "UNKNOWN",
+      "description": "请求成功",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "VALIDATION_ERROR",
+      "layer": "UNKNOWN",
+      "description": "参数或请求结构非法",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "UNAUTHORIZED",
+      "layer": "UNKNOWN",
+      "description": "未通过认证",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FORBIDDEN",
+      "layer": "UNKNOWN",
+      "description": "无权限访问或访问被拒绝",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "RATE_LIMITED",
+      "layer": "UNKNOWN",
+      "description": "触发限流",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "INTERNAL_ERROR",
+      "layer": "UNKNOWN",
+      "description": "系统内部错误",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "流程不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_DRAFT_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "草稿不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_DRAFT_CONFLICT",
+      "layer": "UNKNOWN",
+      "description": "草稿并发冲突",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_VERSION_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "流程版本不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_PUBLISH_CONFLICT",
+      "layer": "UNKNOWN",
+      "description": "发布冲突或状态不允许",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "VALIDATION_ERROR",
+      "layer": "UNKNOWN",
+      "description": "管理请求参数非法",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "RESOURCE_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "资源不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "RESOURCE_DISABLED",
+      "layer": "UNKNOWN",
+      "description": "资源已禁用",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "RESOURCE_CONFIG_INVALID",
+      "layer": "UNKNOWN",
+      "description": "资源配置非法",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "AUTH_CREDENTIAL_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "认证凭证不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "AUTH_CREDENTIAL_DISABLED",
+      "layer": "UNKNOWN",
+      "description": "认证凭证已禁用",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "SCHEDULE_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "调度任务不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "SCHEDULE_CONFLICT",
+      "layer": "UNKNOWN",
+      "description": "调度任务状态冲突或非法状态切换",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "HTTP_ENDPOINT_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "HTTP 发布接口不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "RESOURCE_TEST_FAILED",
+      "layer": "UNKNOWN",
+      "description": "资源连通性测试失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "ACCEPTED",
+      "layer": "UNKNOWN",
+      "description": "异步触发已受理",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "INSTANCE_RUNNING",
+      "layer": "UNKNOWN",
+      "description": "实例仍在运行",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-runtime-api",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "SYNC_TIMEOUT",
+      "layer": "UNKNOWN",
+      "description": "同步触发等待超时，实例继续后台运行",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-runtime-api",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_FAILED",
+      "layer": "UNKNOWN",
+      "description": "流程失败结束",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-runtime-api",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "INSTANCE_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "实例不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_OUTPUT_EVAL_FAILED",
+      "layer": "UNKNOWN",
+      "description": "`flowOutputMapping` 求值失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "ENDPOINT_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "运行时端点不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "ENDPOINT_OFFLINE",
+      "layer": "UNKNOWN",
+      "description": "运行时端点未上线",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "REJECTED_CONCURRENCY",
+      "layer": "UNKNOWN",
+      "description": "触发被实例并发门禁拒绝",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-scheduler",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "VERSION_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "调度解析版本失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "DISPATCH_FAILED",
+      "layer": "UNKNOWN",
+      "description": "调度投递失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-scheduler",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "WAIT_TIMEOUT",
+      "layer": "UNKNOWN",
+      "description": "调度侧等待超时",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-scheduler",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "TRIGGER_LOG_NOT_FOUND",
+      "layer": "UNKNOWN",
+      "description": "触发流水不存在",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "CYCLIC_GRAPH",
+      "layer": "UNKNOWN",
+      "description": "图中存在环",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.2-连通性约束",
+        "docs/phase-1/model-json-contract.md#5.1-结构规则"
+      ],
+      "fixHint": "检查 edges，移除回边或自循环，确保主流程是 DAG。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-3.2-connectivity"
+    },
+    {
+      "errorCode": "NO_START_NODE",
+      "layer": "UNKNOWN",
+      "description": "不存在起始节点",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.1-起始节点与结束节点"
+      ],
+      "fixHint": "确保图中至少存在一个入度为 0 的节点。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-3.1-start-terminal"
+    },
+    {
+      "errorCode": "NO_TERMINAL_NODE",
+      "layer": "UNKNOWN",
+      "description": "不存在结束节点",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.1-起始节点与结束节点"
+      ],
+      "fixHint": "确保图中至少存在一个出度为 0 的节点。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-3.1-start-terminal"
+    },
+    {
+      "errorCode": "UNREACHABLE_NODE",
+      "layer": "UNKNOWN",
+      "description": "节点无法从任一起始节点到达",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.2-连通性约束",
+        "docs/phase-1/model-json-contract.md#8-校验阶段与错误归类"
+      ],
+      "fixHint": "检查 edges，确保所有节点都能从至少一个自动推导出的起始节点到达。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-3.2-connectivity"
+    },
+    {
+      "errorCode": "DISCONNECTED_SUBGRAPH",
+      "layer": "UNKNOWN",
+      "description": "存在独立子图",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.2-连通性约束",
+        "docs/phase-1/model-json-contract.md#5.1-结构规则"
+      ],
+      "fixHint": "检查孤岛节点或独立子图，确保忽略方向后所有节点属于同一连通分量。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-3.2-connectivity"
+    },
+    {
+      "errorCode": "NODE_NOT_ON_START_TO_END_PATH",
+      "layer": "UNKNOWN",
+      "description": "节点不在任何合法起点到终点路径上",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.2-连通性约束",
+        "docs/phase-1/model-json-contract.md#5.1-结构规则"
+      ],
+      "fixHint": "检查节点是否能到达至少一个终止节点，避免中途悬空路径。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-3.2-connectivity"
+    },
+    {
+      "errorCode": "INVALID_CONDITION_BRANCH",
+      "layer": "UNKNOWN",
+      "description": "条件分支结构非法",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#3.3-条件节点约束",
+        "docs/phase-1/model-json-contract.md#5.3-分支规则"
+      ],
+      "fixHint": "condition 节点出边只能使用 true/false；非 condition 节点只能使用 default。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-3.3-condition-branch"
+    },
+    {
+      "errorCode": "NODE_SCHEMA_INVALID",
+      "layer": "UNKNOWN",
+      "description": "节点参数结构不合法",
+      "docRefs": [
+        "docs/phase-1/model-json-contract.md#4-第一层json-schema-负责什么",
+        "docs/phase-1/node-schemas.md"
+      ],
+      "fixHint": "回看 node-schemas 与 model-json schema，补齐缺失字段并修正配置结构。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/model-json-contract.md",
+      "lineHint": "section-4-schema-contract"
+    },
+    {
+      "errorCode": "RESOURCE_REF_INVALID",
+      "layer": "UNKNOWN",
+      "description": "资源引用非法",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_OUTPUT_MAPPING_MISSING",
+      "layer": "UNKNOWN",
+      "description": "发布时缺少 `flowOutputMapping`",
+      "docRefs": [
+        "docs/phase-1/runtime-semantics.md#4.5-流程最终输出",
+        "docs/phase-1/error-codes.md#7.1-模型编译与结构校验"
+      ],
+      "fixHint": "发布前补齐 flowOutputMapping，并确保其能基于稳定命名空间求值。",
+      "ownerModule": "fluxion-modeler",
+      "sourcePath": "docs/phase-1/runtime-semantics.md",
+      "lineHint": "section-4.5-flow-output"
+    },
+    {
+      "errorCode": "VARIABLE_NOT_DECLARED",
+      "layer": "UNKNOWN",
+      "description": "变量未在流程级声明表中定义",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "VARIABLE_DEFAULT_TYPE_MISMATCH",
+      "layer": "UNKNOWN",
+      "description": "变量默认值与声明类型不匹配",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "VARIABLE_DYNAMIC_ACCESS_NOT_ALLOWED",
+      "layer": "UNKNOWN",
+      "description": "变量访问使用了不支持的动态 key 语法",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "NODE_INPUT_EVAL_FAILED",
+      "layer": "UNKNOWN",
+      "description": "节点 `inputMapping` 求值失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-engine",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "NODE_OUTPUT_EVAL_FAILED",
+      "layer": "UNKNOWN",
+      "description": "节点 `outputMapping` 求值失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-engine",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "FLOW_OUTPUT_EVAL_FAILED",
+      "layer": "UNKNOWN",
+      "description": "流程 `flowOutputMapping` 求值失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "NODE_TIMEOUT",
+      "layer": "UNKNOWN",
+      "description": "节点执行超时",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-engine",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "RESOURCE_PERMIT_EXHAUSTED",
+      "layer": "UNKNOWN",
+      "description": "资源并发许可不足",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-engine",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "HTTP_CALL_FAILED",
+      "layer": "UNKNOWN",
+      "description": "HTTP 节点调用失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-engine",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "DB_QUERY_FAILED",
+      "layer": "UNKNOWN",
+      "description": "数据库查询节点失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-engine",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "DB_UPDATE_FAILED",
+      "layer": "UNKNOWN",
+      "description": "数据库更新节点失败",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-engine",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "VARIABLE_ASSIGN_TYPE_MISMATCH",
+      "layer": "UNKNOWN",
+      "description": "变量写入值与声明类型不兼容",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "RESOURCE_DISABLED",
+      "layer": "UNKNOWN",
+      "description": "运行时解析到禁用资源",
+      "docRefs": [
+        "docs/phase-1/error-codes.md"
+      ],
+      "fixHint": "回看对应契约文档，定位失败阶段与字段后修复。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/error-codes.md",
+      "lineHint": "section-error-codes"
+    },
+    {
+      "errorCode": "DOC_CONTRACT_DRIFT",
+      "layer": "HARNESS",
+      "description": "contract 文档入口、摘要文档与 harness/fixture 出现漂移",
+      "docRefs": [
+        "docs/doc-structure.md",
+        "docs/phase-1/admin-api-contract.md",
+        "docs/phase-1/technical-solution.md",
+        "docs/phase-1/schedule-contract.md",
+        "docs/schema-pg.sql"
+      ],
+      "fixHint": "同步检查 contract 文档入口、technical-solution 索引边界与对应 fixture / harness，避免出现第二套事实源。",
+      "ownerModule": "fluxion-common",
+      "sourcePath": "docs/phase-1/admin-api-contract.md",
+      "lineHint": "section-10-doc-sync"
+    }
+  ]
+}

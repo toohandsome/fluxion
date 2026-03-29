@@ -14,7 +14,7 @@
 
 ## 2. 总体约定
 
-一期默认业务时区固定为东八区（北京时间），IANA 时区标识为 `Asia/Shanghai`。本文件中未显式携带 offset 的时间字符串，均按该时区解释。
+一期默认业务时区固定为东八区（北京时间），IANA 时区标识为 `Asia/Shanghai`。本文件中未显式携带 offset 的时间字符串，均按该时区解释；一期管理接口不开放其他业务时区配置。
 
 ### 2.1 调度实现边界
 
@@ -90,7 +90,7 @@
 | `versionPolicy` | string | 是 | `LATEST` / `FIXED` |
 | `fixedVersionId` | long | 否 | `FIXED` 时必填 |
 | `cronExpression` | string | 是 | Quartz Cron 表达式 |
-| `timezone` | string | 是 | Cron 时区 |
+| `timezone` | string | 否 | 一期固定为 `Asia/Shanghai`；可省略，若传入必须等于该值 |
 | `misfirePolicy` | string | 是 | 错失触发处理策略 |
 | `catchUpConfig` | object | 否 | `misfirePolicy = CATCH_UP_BOUNDED` 时的补跑边界配置 |
 | `jobParams` | object | 否 | 静态任务参数 |
@@ -106,6 +106,7 @@
 4. `waitTimeoutMs` 只影响调度线程等待时间，不影响流程实例生命周期，也不等同于流程执行超时。
 5. 当 `reentryPolicy = FORBID` 时，`maxConcurrency` 必须固定为 `1`；否则视为非法配置。
 6. 当 `misfirePolicy = CATCH_UP_BOUNDED` 且未显式提供 `catchUpConfig` 时，默认使用 `maxCatchUpWindowSeconds = 3600`、`maxCatchUpCount = 10`、`order = OLDEST_FIRST`。
+7. `timezone` 未传时由服务端补为 `Asia/Shanghai`；若显式传入其他值，应返回 `VALIDATION_ERROR`。
 
 ## 4. 版本解析规则
 
@@ -279,8 +280,6 @@
 
 ### 9.1 pause
 
-`POST /admin/schedules/{jobId}/pause`
-
 规则：
 
 1. `pause` 后不再产生新的调度触发。
@@ -290,8 +289,6 @@
 
 ### 9.2 resume
 
-`POST /admin/schedules/{jobId}/resume`
-
 规则：
 
 1. `resume` 后从当前时间点重新参与后续 Cron 计算。
@@ -300,13 +297,9 @@
 
 ## 10. 触发流水结构
 
-### 10.1 查询接口
+### 10.1 管理接口入口
 
-`GET /admin/schedules/{jobId}/triggers`
-
-推荐补充详情接口：
-
-`GET /admin/schedules/{jobId}/triggers/{triggerId}`
+调度任务与触发流水相关 `/admin/*` 接口统一见 [admin-api/schedules.md](./admin-api/schedules.md)。
 
 ### 10.2 返回项建议
 

@@ -1,0 +1,66 @@
+name: harness
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate Maven skeleton
+        run: mvn -q validate
+
+      - name: Build catalogs
+        run: python tools/contracts/build_catalogs.py
+
+      - name: Doctor
+        run: python tools/harness/doctor.py
+
+      - name: Select suites from changed files
+        if: github.event_name == 'pull_request'
+        run: python tools/harness/selective_tests.py --base-ref origin/${{ github.base_ref }} --head-ref HEAD
+
+      - name: Run modeler contracts
+        run: python tools/harness/run_contracts.py
+
+      - name: Run engine scenarios
+        run: python tools/harness/run_engine_cases.py
+
+      - name: Run runtime-api integration
+        run: python tools/harness/run_runtime_api_cases.py
+
+      - name: Run scheduler integration
+        run: python tools/harness/run_scheduler_cases.py
+
+      - name: Run persistence integration
+        run: python tools/harness/run_persistence_cases.py
+
+      - name: Run Maven bridge tests
+        run: mvn -q -pl fluxion-test -am test
+
+      - name: Collect harness results
+        if: always()
+        run: python tools/harness/collect_results.py
+
+      - name: Upload harness artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fluxion-harness-artifacts
+          path: .artifacts/harness

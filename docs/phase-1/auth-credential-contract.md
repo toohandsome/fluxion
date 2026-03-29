@@ -15,7 +15,6 @@
 1. 一期实现 `BASIC_AUTH` 与 `OPEN` 。
 2. `OPEN` 不需要认证凭证。
 3. HTTP 端点通过 `authCredentialId` 关联认证凭证。
-4. APP_KEY、BEARER_TOKEN 允许配置但不做校验
 
 ## 3. 认证凭证公共模型
 
@@ -38,7 +37,7 @@
 | --- | --- | --- | --- |
 | `credentialCode` | string | 是 | 凭证业务编码 |
 | `credentialName` | string | 是 | 凭证名称 |
-| `authType` | string | 是 | 默认 `OPEN`, `BASIC_AUTH`需实现；`APP_KEY`、`BEARER_TOKEN` 允许配置但不做校验。 |
+| `authType` | string | 是 | 一期固定为 `OPEN` / `BASIC_AUTH` |
 | `description` | string | 否 | 备注说明 |
 | `config` | object | 否 | 非敏感配置 |
 | `secret` | object | 否 | 敏感配置 |
@@ -49,6 +48,7 @@
 2. `authType` 一期不可变更，若需更换类型需新建凭证。
 3. `secret` 不允许明文回显。
 4. `status` 默认启用，禁用通过独立接口完成。
+5. 数据库落库枚举固定为 `0-OPEN, 1-BASIC_AUTH`。
 
 ## 4. BASIC_AUTH 凭证结构
 
@@ -138,29 +138,23 @@
 1. 运行时解析到禁用凭证，返回 `UNAUTHORIZED` 或 `FORBIDDEN`。
 2. 禁用不会自动下线已发布端点。
 
-## 8. 接口契约
+## 8. 管理接口入口
 
-1. `GET /admin/auth-credentials` 查询凭证列表。
-2. `POST /admin/auth-credentials` 创建凭证。
-3. `GET /admin/auth-credentials/{credentialId}` 查询凭证详情。
-4. `PUT /admin/auth-credentials/{credentialId}` 更新凭证。
-5. `POST /admin/auth-credentials/{credentialId}/disable` 禁用凭证。
+落库枚举约定：
 
-创建响应示例：
+- `flx_auth_credential.auth_type = 0` 表示 `OPEN`
+- `flx_auth_credential.auth_type = 1` 表示 `BASIC_AUTH`
 
-```json
-{
-  "code": "OK",
-  "message": "success",
-  "requestId": "9f8d6f9f0d034f4d",
-  "data": {
-    "credentialId": 3001
-  }
-}
-```
+认证凭证相关 `/admin/*` 管理接口统一见 [admin-api/resources.md](./admin-api/resources.md)。
+
+本文件只维护：
+
+1. 凭证对象结构
+2. 回显与更新规则
+3. 禁用后的对象与运行时语义
 
 ## 9. 一期推荐实现取舍
 
-1. 一期只实现 `BASIC_AUTH` 与 `OPEN` ，其余类型保留枚举位。
+1. 一期只实现 `OPEN` 与 `BASIC_AUTH`，数据库枚举固定为 `0-OPEN, 1-BASIC_AUTH`。
 2. 密码仅通过哈希存储，不保留可逆密文。
 3. 禁用优先于端点校验，避免已下线凭证被误用。

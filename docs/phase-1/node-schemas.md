@@ -2,7 +2,7 @@
 
 ## 1. 文档目的
 
-本文档用于定义一期 6 个基础节点的参数 Schema 详细结构，作为前端表单、后端参数校验、`graph_json` 存储和 `model_json` 编译的统一依据。
+本文档用于定义一期 6 个基础节点的参数 Schema 详细结构，作为前端节点表单、后端节点参数校验以及 `graph_json -> model_json` 编译过程中的节点参数依据。
 
 一期 6 个基础节点如下：
 
@@ -95,6 +95,10 @@
 7. `outputMapping` 负责把当前节点 `raw` 归一为当前节点稳定输出。
 8. `outputMapping` 不直接写入 `vars`；如需共享变量写入，应通过显式 `variable` 节点完成。
 9. 流程级最终输出由设计态 `flow.outputMapping` 定义，发布后编译为运行态 `flowOutputMapping`。
+10. 资源型节点中的 `resourceRef` 一期正式含义固定为 `resourceCode`。
+11. `vars.<name>` 中的根变量名 `<name>` 必须来自 `graph_json.variables` 的正式声明。
+12. 一期不支持 `vars[someExpr]` 这类动态 key 访问；变量访问必须能在编译期解析出固定根变量名。
+13. 若根变量声明类型为 `JSON`，则允许继续访问其嵌套属性，如 `vars.userInfo.name`。
 
 ### 2.5 通用运行策略隐式继承
 
@@ -229,6 +233,11 @@
 2. `TRANSFORM`
    基于源数据表达式进行转换后写入变量。
 
+补充约定：
+
+1. `variable` 节点只允许写入流程级变量；一期不引入节点局部变量或块级变量。
+2. `targetVar` 在发布时必须能解析到 `graph_json.variables` 中的正式声明。
+
 ### 4.2 端口定义
 
 ```json
@@ -249,6 +258,15 @@
 | `transformExpr` | `expression` | `TRANSFORM` 时是 | 无 | 转换表达式 |
 | `writeScope` | `select` | 否 | `FLOW` | 写入作用域 |
 | `overwrite` | `boolean` | 否 | `true` | 是否覆盖已有变量 |
+
+规则：
+
+1. `writeScope` 一期固定为 `FLOW`，表示写入运行时 `vars` 的流程级共享变量空间。
+2. `overwrite = true` 时，无论目标变量当前值为何，都以本次求值结果覆盖。
+3. `overwrite = false` 时，仅当目标变量当前值为 `null` 时才写入；若当前值非 `null`，则本节点按“跳过写入但执行成功”处理。
+4. `SET` 模式下使用 `valueExpr` 的求值结果作为待写入值；`TRANSFORM` 模式下使用 `transformExpr` 的求值结果作为待写入值。
+5. 待写入值若非 `null`，运行时必须校验其与 `targetVar` 的声明类型兼容；不兼容时节点失败，错误码建议使用 `VARIABLE_ASSIGN_TYPE_MISMATCH`。
+6. 发布阶段至少要校验 `targetVar` 是否已声明；对表达式结果类型只做保守校验，不要求一期完成完整静态类型推导。
 
 ### 4.4 Schema 定义
 
@@ -353,7 +371,7 @@
     "mode": "TRANSFORM",
     "targetVar": "userNameUpper",
     "sourceExpr": "${vars.userInfo.name}",
-    "transformExpr": "${#this == null ? null : #this.toUpperCase()}",
+    "transformExpr": "${vars.userInfo.name == null ? null : vars.userInfo.name.toUpperCase()}",
     "writeScope": "FLOW",
     "overwrite": true
   }

@@ -1,0 +1,89 @@
+{
+  "caseId": "persistence/retry-attempt-snapshots",
+  "suite": "persistence-integration",
+  "description": "Failed then successful retries should be persisted into node_execution_attempts with attempt counts.",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 8003,
+    "flowVersionId": 9003,
+    "flowCode": "persistence_retry_attempt_snapshots",
+    "flowName": "Persistence Retry Attempt Snapshots",
+    "variables": [],
+    "flowOutputMapping": {
+      "stage": "${nodes.node_http_retry.output.stage}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_http_retry",
+        "nodeType": "http",
+        "nodeName": "Retry HTTP",
+        "config": {
+          "resourceRef": "mock-http",
+          "method": "GET",
+          "path": "/retry",
+          "queryParams": [],
+          "headers": [],
+          "bodyType": "NONE",
+          "expectedStatus": 200
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "stage": "${raw.body.stage}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 100,
+          "retry": 1,
+          "retryIntervalMs": 10,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "resources": {
+    "http": {
+      "node_http_retry": {
+        "attempts": [
+          {
+            "status": 200,
+            "delayMs": 180,
+            "body": {
+              "stage": "slow"
+            }
+          },
+          {
+            "status": 200,
+            "delayMs": 20,
+            "body": {
+              "stage": "fast"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "nodeStatuses": {
+      "node_http_retry": "SUCCESS"
+    },
+    "nodeAttemptCounts": {
+      "node_http_retry": 2
+    },
+    "attempts": {
+      "node_http_retry": [
+        {
+          "attempt_no": 1,
+          "status": "FAILED",
+          "error_code": "NODE_TIMEOUT",
+          "duration_ms": 180
+        },
+        {
+          "attempt_no": 2,
+          "status": "SUCCESS",
+          "duration_ms": 20
+        }
+      ]
+    }
+  }
+}

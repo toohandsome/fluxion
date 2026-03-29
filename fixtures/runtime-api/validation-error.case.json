@@ -1,0 +1,66 @@
+{
+  "caseId": "runtime-api/validation-error",
+  "suite": "runtime-api-integration",
+  "description": "缺少必填 body 字段时返回 VALIDATION_ERROR。",
+  "endpoint": {
+    "path": "/runtime/openapi/user/sync",
+    "method": "POST",
+    "syncMode": true,
+    "requestConfig": {
+      "pathParams": [],
+      "queryParams": [],
+      "headerParams": [],
+      "body": {
+        "mode": "JSON",
+        "required": true,
+        "schema": {
+          "required": [
+            "userName"
+          ]
+        }
+      }
+    },
+    "responseConfig": {}
+  },
+  "request": {
+    "body": {}
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 5002,
+    "flowVersionId": 6002,
+    "flowCode": "runtime_api_validation_error",
+    "flowName": "Runtime API Validation Error",
+    "variables": [],
+    "flowOutputMapping": {
+      "ok": true
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "记录请求",
+        "config": {
+          "level": "INFO",
+          "message": "runtime invalid",
+          "loggerName": "fluxion.runtime",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "runtime invalid"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  },
+  "expect": {
+    "initialCode": "VALIDATION_ERROR"
+  }
+}

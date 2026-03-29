@@ -1,0 +1,76 @@
+{
+  "caseId": "modeler/invalid/invalid-condition-branch",
+  "suite": "contracts",
+  "kind": "invalid",
+  "description": "condition 节点出边 branchKey 只能是 true/false。",
+  "expect": {
+    "primaryErrorCode": "INVALID_CONDITION_BRANCH",
+    "stage": "STRUCTURE_VALIDATE"
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 1003,
+    "flowVersionId": 2003,
+    "flowCode": "demo_invalid_condition_branch",
+    "flowName": "Demo Invalid Condition Branch",
+    "variables": [
+      {
+        "name": "flag",
+        "type": "BOOLEAN"
+      }
+    ],
+    "flowOutputMapping": {
+      "result": "${nodes.node_log_2.output}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_condition_1",
+        "nodeType": "condition",
+        "nodeName": "判断",
+        "config": {
+          "expr": "${vars.flag}",
+          "nullAsFalse": true
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "matched": "${raw}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_2",
+        "nodeType": "log",
+        "nodeName": "记录日志",
+        "config": {
+          "level": "INFO",
+          "message": "done",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "done"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_1",
+        "sourceNodeId": "node_condition_1",
+        "targetNodeId": "node_log_2",
+        "branchKey": "default"
+      }
+    ]
+  }
+}

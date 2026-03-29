@@ -1,0 +1,41 @@
+{
+  "caseId": "modeler/valid/minimal-linear",
+  "suite": "contracts",
+  "kind": "valid",
+  "description": "最小合法 model_json，单节点同时作为 start 与 terminal。",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 1001,
+    "flowVersionId": 2001,
+    "flowCode": "demo_minimal_linear",
+    "flowName": "Demo Minimal Linear",
+    "variables": [],
+    "flowOutputMapping": {
+      "result": "${nodes.node_log_1.output}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "记录日志",
+        "config": {
+          "level": "INFO",
+          "message": "hello fluxion",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "hello fluxion"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": []
+  }
+}

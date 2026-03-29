@@ -1,0 +1,137 @@
+{
+  "caseId": "engine/branch-skipped",
+  "suite": "engine-scenarios",
+  "description": "条件分支未命中时，下游 true 分支节点应标记为 SKIPPED，false 分支正常执行。",
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3001,
+    "flowVersionId": 4001,
+    "flowCode": "engine_branch_skipped",
+    "flowName": "Engine Branch Skipped",
+    "variables": [
+      {
+        "name": "allow",
+        "type": "BOOLEAN"
+      }
+    ],
+    "flowOutputMapping": {
+      "branch": "${nodes.node_log_false.output.branch}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_condition_1",
+        "nodeType": "condition",
+        "nodeName": "判断条件",
+        "config": {
+          "conditionExpr": "${vars.allow}",
+          "nullAsFalse": true
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "matched": "${raw}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_true",
+        "nodeType": "log",
+        "nodeName": "命中 true",
+        "config": {
+          "level": "INFO",
+          "message": "true branch",
+          "loggerName": "fluxion.engine",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "branch": "true"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      },
+      {
+        "nodeId": "node_log_false",
+        "nodeType": "log",
+        "nodeName": "命中 false",
+        "config": {
+          "level": "INFO",
+          "message": "false branch",
+          "loggerName": "fluxion.engine",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "branch": "false"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_true",
+        "sourceNodeId": "node_condition_1",
+        "targetNodeId": "node_log_true",
+        "branchKey": "true"
+      },
+      {
+        "edgeId": "edge_false",
+        "sourceNodeId": "node_condition_1",
+        "targetNodeId": "node_log_false",
+        "branchKey": "false"
+      }
+    ]
+  },
+  "trigger": {
+    "triggerType": "MANUAL",
+    "vars": {
+      "allow": false
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "flowOutput": {
+      "branch": "false"
+    },
+    "nodeStatuses": {
+      "node_condition_1": "SUCCESS",
+      "node_log_true": "SKIPPED",
+      "node_log_false": "SUCCESS"
+    },
+    "skipReasons": {
+      "node_log_true": "BRANCH_NOT_MATCHED"
+    },
+    "attemptDetails": {
+      "node_condition_1": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ],
+      "node_log_true": [],
+      "node_log_false": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#5.3-条件分支语义",
+    "docs/phase-1/runtime-semantics.md#5.3.1-skipped-持久化语义"
+  ]
+}

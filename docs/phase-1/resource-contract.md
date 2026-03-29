@@ -44,8 +44,9 @@
 3. 前端查询资源详情时，`secret` 永不回显明文。
 4. 更新资源时，未显式传入的敏感字段保持原值。
 5. 一期不支持在流程节点内直接保存连接凭证。
-6. 一期资源级并发保护配置统一放入 `config`，不新增独立表字段。
-7. 资源级并发保护默认按 `resourceRef` 生效，推荐配置键为 `maxConcurrency`。
+6. `resourceRef` 的一期正式含义固定为 `resourceCode`；设计态和运行态都不写入 `resourceId`。
+7. 一期资源级并发保护配置统一放入 `config`，不新增独立表字段。
+8. 资源级并发保护默认按 `resourceRef` 生效，推荐配置键为 `maxConcurrency`。
 
 ## 3. DB 资源契约
 
@@ -119,7 +120,7 @@
   "defaultHeaders": {
     "Accept": "application/json"
   },
-  "authMode": "BEARER",
+  "authMode": "OPEN",
   "testPath": "/health",
   "testMethod": "GET"
 }
@@ -134,7 +135,7 @@
 | `readTimeoutMs` | number | 否 | 读超时 |
 | `maxConcurrency` | number | 否 | 资源级最大并发许可数，用于保护下游 HTTP 服务 |
 | `defaultHeaders` | object | 否 | 默认请求头 |
-| `authMode` | string | 否 | `NONE` / `BASIC` / `BEARER` / `APP_KEY` |
+| `authMode` | string | 否 | `OPEN` / `BASIC_AUTH` |
 | `testPath` | string | 否 | 测试连通性使用的路径 |
 | `testMethod` | string | 否 | 测试方法，默认 `GET` |
 
@@ -145,35 +146,18 @@
 
 ### 4.2 secret 结构
 
-#### `authMode = NONE`
+#### `authMode = OPEN`
 
 ```json
 {}
 ```
 
-#### `authMode = BASIC`
+#### `authMode = BASIC_AUTH`
 
 ```json
 {
   "username": "api_user",
   "password": "******"
-}
-```
-
-#### `authMode = BEARER`
-
-```json
-{
-  "token": "******"
-}
-```
-
-#### `authMode = APP_KEY`
-
-```json
-{
-  "appKey": "demo-app",
-  "appSecret": "******"
 }
 ```
 
@@ -212,41 +196,13 @@
 3. 若用户不修改敏感字段，更新请求可省略该字段。
 4. 若用户传入新值，则整体替换对应敏感字段。
 
-## 6. 资源测试接口契约
+## 6. 资源测试语义
 
-### 6.1 接口
-
-`POST /admin/resources/{resourceId}/test`
-
-### 6.2 成功响应
-
-```json
-{
-  "code": "OK",
-  "message": "success",
-  "requestId": "9f8d6f9f0d034f4d",
-  "data": {
-    "status": "SUCCESS",
-    "latencyMs": 32,
-    "message": "resource test passed"
-  }
-}
-```
-
-### 6.3 失败响应
-
-```json
-{
-  "code": "RESOURCE_TEST_FAILED",
-  "message": "resource test failed",
-  "requestId": "9f8d6f9f0d034f4d",
-  "data": {
-    "status": "FAILED",
-    "latencyMs": 18,
-    "message": "connect timed out"
-  }
-}
-```
+1. 管理端资源测试接口入口统一见 [admin-api/resources.md](./admin-api/resources.md)。
+2. DB 资源测试固定执行 `SELECT 1`。
+3. HTTP 资源测试调用 `baseUrl + testPath`；未配置 `testPath` 时默认请求 `/`。
+4. 测试成功时返回 `OK`。
+5. 测试失败时返回 `RESOURCE_TEST_FAILED`，并在结果对象中返回耗时与失败摘要。
 
 ## 7. 资源禁用后的行为
 

@@ -1,0 +1,124 @@
+{
+  "caseId": "engine/db-roundtrip",
+  "suite": "engine-scenarios",
+  "description": "dbUpdate 后接 dbQuery，应能在真实 sqlite 资源上完成写入与查询。",
+  "resources": {
+    "dbSchemas": {
+      "app-db": "create table demo_users (id integer primary key autoincrement, name text not null);"
+    }
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 3003,
+    "flowVersionId": 4003,
+    "flowCode": "engine_db_roundtrip",
+    "flowName": "Engine DB Roundtrip",
+    "variables": [],
+    "flowOutputMapping": {
+      "name": "${nodes.node_db_query.output.name}"
+    },
+    "nodes": [
+      {
+        "nodeId": "node_db_update",
+        "nodeType": "dbUpdate",
+        "nodeName": "插入用户",
+        "config": {
+          "resourceRef": "app-db",
+          "sql": "insert into demo_users(name) values (:name)",
+          "params": [
+            {
+              "key": "name",
+              "value": "${request.body.userName}"
+            }
+          ],
+          "returnGeneratedKeys": true
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "rowsAffected": "${raw.rowsAffected}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        },
+        "sideEffectPolicy": {
+          "type": "COMPENSABLE",
+          "compensationStrategy": "manual-delete"
+        }
+      },
+      {
+        "nodeId": "node_db_query",
+        "nodeType": "dbQuery",
+        "nodeName": "查询用户",
+        "config": {
+          "resourceRef": "app-db",
+          "sql": "select name from demo_users where name = :name",
+          "params": [
+            {
+              "key": "name",
+              "value": "${request.body.userName}"
+            }
+          ],
+          "resultMode": "ONE",
+          "fetchSize": 10
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "name": "${raw.name}"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 1000,
+          "retry": 0,
+          "retryIntervalMs": 0,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edgeId": "edge_db",
+        "sourceNodeId": "node_db_update",
+        "targetNodeId": "node_db_query",
+        "branchKey": "default"
+      }
+    ]
+  },
+  "trigger": {
+    "triggerType": "HTTP",
+    "request": {
+      "body": {
+        "userName": "alice"
+      }
+    }
+  },
+  "expect": {
+    "instanceStatus": "SUCCESS",
+    "flowOutput": {
+      "name": "alice"
+    },
+    "nodeStatuses": {
+      "node_db_update": "SUCCESS",
+      "node_db_query": "SUCCESS"
+    },
+    "attemptDetails": {
+      "node_db_update": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ],
+      "node_db_query": [
+        {
+          "attempt": 1,
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  },
+  "docRefs": [
+    "docs/phase-1/runtime-semantics.md#4.4-节点输入输出映射语义",
+    "docs/phase-1/runtime-semantics.md#7.2-成功结束"
+  ]
+}

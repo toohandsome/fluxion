@@ -1,0 +1,54 @@
+{
+  "caseId": "modeler/invalid/unexpected-derived-fields",
+  "suite": "contracts",
+  "kind": "invalid",
+  "description": "published model_json 不允许继续携带 startNodeIds、topology、incomingNodeIds 等派生字段。",
+  "expect": {
+    "primaryErrorCode": "NODE_SCHEMA_INVALID",
+    "stage": "SCHEMA_VALIDATE"
+  },
+  "model": {
+    "modelVersion": "1.0",
+    "flowDefId": 1005,
+    "flowVersionId": 2005,
+    "flowCode": "demo_unexpected_derived_fields",
+    "flowName": "Demo Unexpected Derived Fields",
+    "variables": [],
+    "flowOutputMapping": {
+      "result": "${nodes.node_log_1.output}"
+    },
+    "startNodeIds": [
+      "node_log_1"
+    ],
+    "nodes": [
+      {
+        "nodeId": "node_log_1",
+        "nodeType": "log",
+        "nodeName": "记录日志",
+        "incomingNodeIds": [],
+        "config": {
+          "level": "INFO",
+          "message": "hello fluxion",
+          "loggerName": "fluxion.demo",
+          "printContext": false
+        },
+        "inputMapping": {},
+        "outputMapping": {
+          "message": "hello fluxion"
+        },
+        "runtimePolicy": {
+          "timeoutMs": 3000,
+          "retry": 0,
+          "retryIntervalMs": 1000,
+          "logEnabled": true
+        }
+      }
+    ],
+    "edges": [],
+    "topology": {
+      "orderedNodeIds": [
+        "node_log_1"
+      ]
+    }
+  }
+}

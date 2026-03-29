@@ -85,7 +85,7 @@
 2. `schedule`
    调度触发时包含 `jobId`、`triggerTime`、`scheduledFireTime`、`params`
 3. `vars`
-   流程全局变量上下文
+   流程全局变量上下文；实例启动时按已发布模型中的变量声明表初始化
 4. `instance`
    实例元数据，如 `instanceId`、`flowCode`、`triggerType`、`traceId`、`businessKey`
 5. `nodes`
@@ -98,6 +98,14 @@
 3. 节点原始输入输出主要用于审计和调试，不作为跨节点稳定契约。
 4. 当前节点执行器返回的原始结果只以阶段性局部命名空间 `raw` 暴露给本节点 `outputMapping`，不会进入全局稳定上下文。
 5. 流程级最终输出在实例成功结束后，以只读视图 `flow.output` 暴露给 HTTP 响应映射和结果查询阶段；节点级表达式不直接访问 `flow`。
+
+### 4.3.1 变量声明与初始化
+
+1. 发布后的运行时模型必须显式包含流程级变量声明表，用于初始化 `vars`。
+2. 实例创建时，`vars` 按变量声明表一次性初始化；变量顺序不影响初始化语义。
+3. 变量声明中 `defaultValue` 存在时，实例初始值取该默认值；若缺失，则初始值固定为 `null`。
+4. 一期变量类型固定为 `STRING` / `INT` / `LONG` / `DOUBLE` / `BOOLEAN` / `JSON`；其中 `JSON` 可承载对象或数组。
+5. 发布校验通过后，运行时不再接受未声明的根变量名；表达式中的 `vars.<name>` 必须能映射到正式声明。
 
 ### 4.4 节点输入输出映射语义
 
@@ -118,6 +126,15 @@
 5. 节点成功结束后，`nodes.<nodeId>.status = SUCCESS` 且 `nodes.<nodeId>.output` 可供后续节点访问。
 6. `SKIPPED` 节点允许只有 `status` 而没有 `output`；后续表达式对缺失字段按 `null` 处理。
 7. `outputMapping` 求值成功后，应立即写入实例内存态上下文 `nodes.<nodeId>.output`，随后在节点终态落库事务中同步持久化节点输出快照。
+
+### 4.4.2 `variable` 节点写入语义
+
+1. `variable` 节点执行时，`SET` 模式取 `valueExpr` 的求值结果作为待写入值；`TRANSFORM` 模式取 `transformExpr` 的求值结果作为待写入值。
+2. `targetVar` 必须能解析到已发布模型中的变量声明；若发布模型不满足该条件，应视为编译期错误，而不是运行时兜底补建变量。
+3. `overwrite = true` 时，待写入值直接覆盖 `vars.targetVar` 的当前值。
+4. `overwrite = false` 时，仅当 `vars.targetVar == null` 才执行写入；若当前值非 `null`，则本节点按成功执行但不改写变量处理。
+5. 待写入值若非 `null`，运行时必须校验其与目标变量声明类型兼容；不兼容时节点失败，错误码建议使用 `VARIABLE_ASSIGN_TYPE_MISMATCH`。
+6. 变量写入成功后，更新后的 `vars.targetVar` 应立即对后续节点表达式可见。
 
 ### 4.4.1 节点持久化与事务边界
 
